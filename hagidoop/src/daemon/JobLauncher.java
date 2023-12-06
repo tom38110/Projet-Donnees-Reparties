@@ -32,7 +32,8 @@ public class JobLauncher {
 	}
 	public static void startJob (MapReduce mr, int format, String fname) {
 		for (int i = 0; i < Project.nbNoeud; i++) {
-			Thread t = new Thread(new );
+			FileReaderWriter reader = 
+			Thread t = new Thread(new InnerJobLauncher(mr, null, null));
 
 		}
 	}
