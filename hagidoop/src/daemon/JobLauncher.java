@@ -1,12 +1,15 @@
 package daemon;
 
 import java.rmi.RemoteException;
+import java.util.HashSet;
+import java.util.Set;
 
 import config.Project;
 import interfaces.FileReaderWriter;
 import interfaces.Map;
 import interfaces.MapReduce;
 import interfaces.NetworkReaderWriter;
+import io.FileReaderWriterImpl;
 
 public class JobLauncher {
 
@@ -20,6 +23,8 @@ public class JobLauncher {
 			this.reader = reader;
 			this.writer = writer;
 		}
+
+		// Lancement des runMap
 		@Override
 		public void run() {
 			try {
@@ -30,11 +35,18 @@ public class JobLauncher {
 			}
 		}
 	}
-	public static void startJob (MapReduce mr, int format, String fname) {
-		for (int i = 0; i < Project.nbNoeud; i++) {
-			FileReaderWriter reader = 
-			Thread t = new Thread(new InnerJobLauncher(mr, null, null));
 
+	public static void startJob (MapReduce mr, int format, String fname) {
+		Set<Thread> threads = new HashSet<>();
+		for (int i = 0; i < Project.nbNoeud; i++) {
+			FileReaderWriter reader =  new FileReaderWriterImpl();
+			NetworkReaderWriter writer = new NetworkReaderWriterImpl();
+			Thread t = new Thread(new InnerJobLauncher(mr, reader, writer));
+			threads.add(t);
+		}
+
+		for (Thread t : threads) {
+			t.join();
 		}
 	}
 }
