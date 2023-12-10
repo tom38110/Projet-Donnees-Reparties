@@ -160,5 +160,6 @@ public class HdfsClient {
 		// java HdfsClient <read|write> <txt|kv> <file>
 		// appel des méthodes précédentes depuis la ligne de commande
 
+		
 	}
 }
