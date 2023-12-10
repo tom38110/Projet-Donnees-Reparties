@@ -27,6 +27,8 @@ public class HdfsClient {
 	/* Probablement fonctionnel (en attente de test ) */
 	public static void HdfsDelete(String fname) {
 		try {
+		// File fichier = new File("/mnt/c/Users/yanis/Documents/GitHub/Projet-Donnees-Reparties/" 
+		//						+ fname); // modifier le path avec celui de Hagimont
 		File fichier = new File("/mnt/c/Users/yanis/Documents/GitHub/Projet-Donnees-Reparties/" 
 								+ fname); // modifier le path avec celui de Hagimont
 		if (fichier.delete()) {
@@ -41,13 +43,14 @@ public class HdfsClient {
 	
 	// fmt format du fichier (FMT_TXT ou FMT_KV)
 	// lis chaque ligne du fichier sans le découper et stock les fragments dans les différents noeuds
+
+	//Passer par les modulo pour traiter les lignes
+	
 	public static void HdfsWrite(int fmt, String fname) {
 
-		int nbServ = Project.nbNoeud; // nombre de serveur = nombre de noeuds ? (pas sur de cette interprétation)
+		int nbServ = Project.nbNoeud; // nombre de serveur = nombre de noeuds 
 		
 		ArrayList<String> lignes = new ArrayList<>(); // liste des lignes stockées 
-
-		int nbLigneFrag = lignes.size()/ nbServ; // Nombre de ligne par fragment.
 
 		File fichier = new File("/mnt/c/Users/yanis/Documents/GitHub/Projet-Donnees-Reparties/" 
 								+ fname); // modifier le path avec celui de Hagimont
@@ -66,6 +69,8 @@ public class HdfsClient {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+		int nbLigneFrag = lignes.size()/ nbServ; // Nombre de ligne par fragment.
 
 		if (fmt == 0) { // FMT_TXT	
 			
@@ -89,9 +94,9 @@ public class HdfsClient {
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
-
+				String fragName = "fragment" + fname + "-" + i;
 				//Ajouter le nombre de lignes adéquates dans chaque fragments.
-				try (BufferedWriter bufEcr = new BufferedWriter(new FileWriter(fname))) {
+				try (BufferedWriter bufEcr = new BufferedWriter(new FileWriter(fragName))) {
 					for (int j = debut; j <= fin; j++) {
 						if (j >= 0 && j < lignes.size()) {
 							bufEcr.write(lignes.get(j));
@@ -100,7 +105,7 @@ public class HdfsClient {
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
-				String fragName = "fragment" + fname + "-" + i;
+				
 				envoyerFragmentAuServeur(fragName, i);	// envoyer les fragments vers les serveurs...
 			}
 
@@ -109,6 +114,7 @@ public class HdfsClient {
 			// Création de la liste des KV
 			HashMap<String,Integer> listeKV = new HashMap<String,Integer>();
 			KV kv;
+
 			//try{
 			//FileReader lectFich = new FileReader(fichier);
 			// création du reader
@@ -119,8 +125,10 @@ public class HdfsClient {
 
 			FileReaderWriter readerWriter = getReaderWriter(FileReaderWriter.FMT_TXT, fname);
 			readerWriter.open("write");
+
 			HashMap<Integer,String> listeCle = new HashMap<Integer,String>();
 			int ind = 0;
+			
 			// Recupérer la liste des couples KV 
 			while ((kv = readerWriter.read()) != null) {
 				String tokens[] = kv.v.split(" ");
@@ -149,9 +157,10 @@ public class HdfsClient {
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
-
+				String fragName = "fragment" + fname + "-" + i;
+				
 				//Ajouter le nombre de couple KV adéquates dans chaque fragments.
-				try (BufferedWriter bufEcr = new BufferedWriter(new FileWriter(fname))) {
+				try (BufferedWriter bufEcr = new BufferedWriter(new FileWriter(fragName))) {
 					for (int j = debut; j <= fin; j++) {
 						if (j >= 0 && j < listeKV.size()) {
 							int val = listeKV.get(listeCle.get(j)); // On récupère la valeur associé à la bonne clé
@@ -161,7 +170,7 @@ public class HdfsClient {
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
-				String fragName = "fragment" + fname + "-" + i;
+				
 				envoyerFragmentAuServeur(fragName, i);	// envoyer les fragments vers les serveurs...
 			}
 		}
@@ -197,7 +206,6 @@ public class HdfsClient {
 			}
 
 	}
-
 
 
 	

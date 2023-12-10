@@ -14,7 +14,7 @@ public class FileReaderWriterImpl implements FileReaderWriter {
     public void write(KV record) {
         try {
             writer.write(record.k + KV.SEPARATOR + record.v); //ecris k<->v
-            writer.newLine(); // on saite une ligne
+            writer.newLine(); // on saute une ligne
         } catch (IOException e) {
             e.printStackTrace();
         }
