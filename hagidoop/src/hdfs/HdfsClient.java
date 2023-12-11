@@ -7,8 +7,6 @@ import java.util.HashMap;
 import config.Project;
 import interfaces.FileReaderWriter;
 import interfaces.KV;
-import interfaces.Reader;
-import interfaces.Writer;
 import io.FileReaderWriterImpl;
 
 public class HdfsClient {
@@ -27,10 +25,9 @@ public class HdfsClient {
 	/* Probablement fonctionnel (en attente de test ) */
 	public static void HdfsDelete(String fname) {
 		try {
-		// File fichier = new File("/mnt/c/Users/yanis/Documents/GitHub/Projet-Donnees-Reparties/" 
+		// File fichier = new File(~/Documents/Projet-Donnees-Reparties
 		//						+ fname); // modifier le path avec celui de Hagimont
-		File fichier = new File("/mnt/c/Users/yanis/Documents/GitHub/Projet-Donnees-Reparties/" 
-								+ fname); // modifier le path avec celui de Hagimont
+		File fichier = new File(Project.PATH + "data/" + fname); // modifier le path avec celui de Hagimont
 		if (fichier.delete()) {
 			System.out.println("le fichier : " + fname + " a été effacé.");
 		}
@@ -52,8 +49,7 @@ public class HdfsClient {
 		
 		ArrayList<String> lignes = new ArrayList<>(); // liste des lignes stockées 
 
-		File fichier = new File("/mnt/c/Users/yanis/Documents/GitHub/Projet-Donnees-Reparties/" 
-								+ fname); // modifier le path avec celui de Hagimont
+		File fichier = new File(/* Project.PATH + "data/" +  */fname); // modifier le path avec celui de Hagimont
 
 		// On va recupérer les lignes dans la liste
         try  {
@@ -83,7 +79,7 @@ public class HdfsClient {
 
 				// création des i fragments en .txt
 				try {
-					File fragment = new File("fragment" + fname + "-" + i);
+					File fragment = new File(/* Project.PATH + "data/fragment" +  */fname + "-" + i);
 		
 					// Vérifier si le fichier existe déjà.
 					if (fragment.createNewFile()) {
@@ -94,7 +90,7 @@ public class HdfsClient {
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
-				String fragName = "fragment" + fname + "-" + i;
+				String fragName = "fragment-" + i + fname;
 				//Ajouter le nombre de lignes adéquates dans chaque fragments.
 				try (BufferedWriter bufEcr = new BufferedWriter(new FileWriter(fragName))) {
 					for (int j = debut; j <= fin; j++) {
@@ -146,7 +142,7 @@ public class HdfsClient {
 
 				// création des i fragments en .txt
 				try {
-					File fragment = new File("fragment" + fname + "-" + i);
+					File fragment = new File(/* Project.PATH + "data/ */"fragment" + fname + "-" + i);
 		
 					// Vérifier si le fichier existe déjà.
 					if (fragment.createNewFile()) {
@@ -157,7 +153,7 @@ public class HdfsClient {
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
-				String fragName = "fragment" + fname + "-" + i;
+				String fragName = "fragment-" + i+fname;
 				
 				//Ajouter le nombre de couple KV adéquates dans chaque fragments.
 				try (BufferedWriter bufEcr = new BufferedWriter(new FileWriter(fragName))) {
@@ -184,7 +180,7 @@ public class HdfsClient {
 				oos.writeObject("ecriture");
 				oos.writeObject(fragName);
 
-				try (BufferedReader bufLectFrag = new BufferedReader(new FileReader("/mnt/c/Users/yanis/Documents/GitHub/Projet-Donnees-Reparties/" + fragName))) {
+				try (BufferedReader bufLectFrag = new BufferedReader(new FileReader(/* Project.PATH + "data/" +  */fragName))) {
 					String ligneFrag;
 					while ((ligneFrag = bufLectFrag.readLine()) != null ){
 						oos.writeObject(ligneFrag);
