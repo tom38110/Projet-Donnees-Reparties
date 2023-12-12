@@ -34,13 +34,16 @@ public class TxtFileReaderWriter implements FileReaderWriter {
     @Override
     public KV read() {
         String ligne = null;
+        KV kv = null;
         try {
             ligne = reader.readLine();
         } catch (IOException e) {
             e.printStackTrace();
         }
-        KV kv = new KV(null, ligne);
-        this.index++;
+        if (ligne != null) {
+            kv = new KV(null, ligne);
+            this.index++;
+        }
         return kv;
     }
 

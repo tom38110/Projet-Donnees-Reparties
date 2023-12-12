@@ -30,13 +30,15 @@ public class KVFileReaderWriter implements FileReaderWriter{
     /* Méthodes */
     @Override
     public KV read() {
-        String ligne;
+        String ligne = null;
         KV kv = null;
         try {
             ligne = reader.readLine();
-            String[] parties = ligne.split(KV.SEPARATOR); // Récupérer la clé et la valeur
-            kv = new KV(parties[0], parties[1]);
-            this.index++;
+            if (ligne != null) {
+                String[] parties = ligne.split(KV.SEPARATOR); // Récupérer la clé et la valeur
+                kv = new KV(parties[0], parties[1]);
+                this.index++;
+            }
         } catch (IOException e) {
             e.printStackTrace();
         } // Lire la ligne
