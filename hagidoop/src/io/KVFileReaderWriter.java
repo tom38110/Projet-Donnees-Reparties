@@ -1,7 +1,10 @@
+package io;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
+import java.io.IOException;
 
 import interfaces.FileReaderWriter;
 import interfaces.KV;
@@ -27,39 +30,59 @@ public class KVFileReaderWriter implements FileReaderWriter{
     /* Méthodes */
     @Override
     public KV read() {
-        String ligne = reader.readLine(); // Lire la ligne
-        String[] parties = ligne.split(KV.SEPARATOR); // Récupérer la clé et la valeur
-        KV kv = new KV(parties[0], parties[1]);
-        this.index++;
+        String ligne;
+        KV kv = null;
+        try {
+            ligne = reader.readLine();
+            String[] parties = ligne.split(KV.SEPARATOR); // Récupérer la clé et la valeur
+            kv = new KV(parties[0], parties[1]);
+            this.index++;
+        } catch (IOException e) {
+            e.printStackTrace();
+        } // Lire la ligne
         return kv;
     }
 
     @Override
     public void write(KV record) {
-        writer.write(record.k + KV.SEPARATOR + record.v);
-        writer.newLine();
+        try {
+            writer.write(record.k + KV.SEPARATOR + record.v);
+            writer.newLine();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         this.index++;
     }
 
     @Override
     public void open(String mode) {
-        // On choisit le mode (écriture ou lecture)
-        if ("lecture".equals(mode)) { 
-            reader = new BufferedReader(new FileReader(fname));
-            this.index++;
-        } else if ("ecriture".equals(mode)) {
-            writer = new BufferedWriter(new FileWriter(fname));
-            this.index++;
+        try {
+            // On choisit le mode (écriture ou lecture)
+            if ("lecture".equals(mode)) { 
+                reader = new BufferedReader(new FileReader(fname));
+                this.index++;
+            } else if ("ecriture".equals(mode)) {
+                writer = new BufferedWriter(new FileWriter(fname));
+                this.index++;
+            }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
     @Override
     public void close() {
-        if (reader != null) { // fermeture dans le cas d'un lecteur
-            reader.close();
-        }
-        if (writer != null) { // fermeture dans le cas d'un rédacteur
-            writer.close();
+        try {
+            if (reader != null) { // fermeture dans le cas d'un lecteur
+                reader.close();
+            }
+            if (writer != null) { // fermeture dans le cas d'un rédacteur
+                writer.close();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 

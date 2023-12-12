@@ -1,7 +1,10 @@
+package io;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
+import java.io.IOException;
 
 import interfaces.FileReaderWriter;
 import interfaces.KV;
@@ -30,7 +33,12 @@ public class TxtFileReaderWriter implements FileReaderWriter {
 
     @Override
     public KV read() {
-        String ligne = reader.readLine();
+        String ligne = null;
+        try {
+            ligne = reader.readLine();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         KV kv = new KV(null, ligne);
         this.index++;
         return kv;
@@ -38,27 +46,41 @@ public class TxtFileReaderWriter implements FileReaderWriter {
 
     @Override
     public void write(KV record) {
-        writer.write(record.k + KV.SEPARATOR + record.v); 
-        writer.newLine();
+        try {
+            writer.write(record.k + KV.SEPARATOR + record.v);
+            writer.newLine();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         this.index++;       
     }
 
     @Override
     public void open(String mode) {
-        if (mode.equals("lecture")) {
-            reader = new BufferedReader(new FileReader(this.fname));
-        } else if (mode.equals("ecriture")) {
-            writer = new BufferedWriter(new FileWriter(this.fname));
+        try {
+            if (mode.equals("lecture")) {
+                reader = new BufferedReader(new FileReader(this.fname));
+            } else if (mode.equals("ecriture")) {
+                writer = new BufferedWriter(new FileWriter(this.fname));
+            }
+        } catch (FileNotFoundException e) {
+                e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
     @Override
     public void close() {
-        if (reader != null) {
-            reader.close();
-        }
-        if (writer != null) {
-            writer.close();
+        try {
+            if (reader != null) {
+                reader.close();
+            }
+            if (writer != null) {
+                writer.close();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
