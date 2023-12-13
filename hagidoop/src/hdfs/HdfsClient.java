@@ -67,108 +67,56 @@ public class HdfsClient {
         }
 
 		int nbLigneFrag = lignes.size()/ nbServ; // Nombre de ligne par fragment.
-
+		String fragName;
+		FileReaderWriter txtFRW;
+		FileReaderWriter txtFRWFrag;
+		FileReaderWriter kvFRW;
+		FileReaderWriter kvFRWFrag;
 		if (fmt == 0) { // FMT_TXT	
-			
 			for (int i= 0; i<nbServ; i++) {
-				// stocker les fragments dans une liste ?? 
-
+				fragName = "fragment-" + i + fname;
+				try {
+				File fragment = new File( Project.PATH + "data/" + fragName);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
 				// indices de début et de fin des fragments
 				int debut =i*nbLigneFrag;
 				int fin =(i+1)*nbLigneFrag;
 
-				// création des i fragments en .txt
-				try {
-					File fragment = new File(/* Project.PATH + "data/fragment" +  */fname + "-" + i);
-		
-					// Vérifier si le fichier existe déjà.
-					if (fragment.createNewFile()) {
-						System.out.println("Le fragment" + i + " a été créé !");
-					} else {
-						System.out.println("Le fragment" + i + " existe déjà.");
-					}
-				} catch (IOException e) {
-					e.printStackTrace();
+				for (int j = debut; j <= fin; j++) {
+					txtFRWFrag = TxtFileReaderWriter(fragName,j);
+					txtFRW = TxtFileReaderWriter(fname,j);
+					KV kv = txtFRW.read(); // Lecture Fichier
+					txtFRWFrag.write(kv); // Ecriture Fragment
+
 				}
-				String fragName = "fragment-" + i + fname;
-				//Ajouter le nombre de lignes adéquates dans chaque fragments.
-				try (BufferedWriter bufEcr = new BufferedWriter(new FileWriter(fragName))) {
-					for (int j = debut; j <= fin; j++) {
-						if (j >= 0 && j < lignes.size()) {
-							bufEcr.write(lignes.get(j));
-						}
-					}
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-				
-				envoyerFragmentAuServeur(fragName, i);	// envoyer les fragments vers les serveurs...
+				envoyerFragmentAuServeur(fragName, i);
 			}
 
 		} else if (fmt == 1) {// FMT_KV
-			// 
-			// Création de la liste des KV
-			HashMap<String,Integer> listeKV = new HashMap<String,Integer>();
-			KV kv;
-
-			//try{
-			//FileReader lectFich = new FileReader(fichier);
-			// création du reader
-			//BufferedReader lecteur = new BufferedReader(lectFich);
-			//} catch(IOException e) {
-			//	e.printStackTrace();	
-			//}
-
-			FileReaderWriter readerWriter = getReaderWriter(FileReaderWriter.FMT_TXT, fname);
-			readerWriter.open("write");
-
-			HashMap<Integer,String> listeCle = new HashMap<Integer,String>();
-			int ind = 0;
 			
-			// Recupérer la liste des couples KV 
-			while ((kv = readerWriter.read()) != null) {
-				String tokens[] = kv.v.split(" ");
-				for (String tok : tokens) {
-					listeKV.put(tok, 1);
-					listeCle.put(ind, tok);
-					ind ++;
-				}
-			}
-
 			for (int i= 0; i<nbServ; i++) {
+				fragName = "fragment-" + i + fname;
+				try {
+				File fragment = new File( Project.PATH + "data/" + fragName);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
 				// indices de début et de fin des fragments
 				int debut =i*nbLigneFrag;
 				int fin =(i+1)*nbLigneFrag;
 
-				// création des i fragments en .txt
-				try {
-					File fragment = new File(/* Project.PATH + "data/ */"fragment" + fname + "-" + i);
-		
-					// Vérifier si le fichier existe déjà.
-					if (fragment.createNewFile()) {
-						System.out.println("Le fragment" + i + " a été créé !");
-					} else {
-						System.out.println("Le fragment" + i + " existe déjà.");
-					}
-				} catch (IOException e) {
-					e.printStackTrace();
+				for (int j = debut; j <= fin; j++) {
+					kvFRWFrag = KVFileReaderWriter(fragName,j);
+					kvFRW = KVFileReaderWriter(fname,j);
+					KV kv = kvFRW.read(); // Lecture Fichier
+					kvFRWFrag.write(kv); // Ecriture Fragment
+
 				}
-				String fragName = "fragment-" + i+fname;
-				
-				//Ajouter le nombre de couple KV adéquates dans chaque fragments.
-				try (BufferedWriter bufEcr = new BufferedWriter(new FileWriter(fragName))) {
-					for (int j = debut; j <= fin; j++) {
-						if (j >= 0 && j < listeKV.size()) {
-							int val = listeKV.get(listeCle.get(j)); // On récupère la valeur associé à la bonne clé
-							bufEcr.write(val);
-						}
-					}
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-				
-				envoyerFragmentAuServeur(fragName, i);	// envoyer les fragments vers les serveurs...
+				envoyerFragmentAuServeur(fragName, i);
 			}
+
 		}
 	}
 
@@ -204,28 +152,13 @@ public class HdfsClient {
 	}
 
 
-	
-	private static FileReaderWriter getReaderWriter(int fmt, String fname) {
-        // renvoie le FileReaderWriter au bon format.
-		if (fmt == FileReaderWriter.FMT_TXT) {
-			return new FileReaderWriterImpl();
-		} else if (fmt == FileReaderWriter.FMT_KV) {
-			return new FileReaderWriterImpl();
-			// return new AJOUTER UN CONSTRUCTEUR POUR LES KV
-		} else { 
-			return null;
-		}
-	}
-
-
 
 
 	public static void HdfsRead(String fname) {
-		File fichier = new File("/mnt/c/Users/yanis/Documents/GitHub/Projet-Donnees-Reparties/" 
-								+ fname); // modifier le path avec celui de Hagimont
-		try {		
+		File fichier = new File(Project.PATH + "data/" + fname); // modifier le path avec celui de Hagimont
+		try {
 			// Obtention du bon FileReaderWriter au format texte
-			FileReaderWriter readerWriter = getReaderWriter(FileReaderWriter.FMT_TXT, fname);
+			TxtFileReaderWriter readerWriter = TxtFileReaderWriter(fname,1);
 			readerWriter.open("lecture");
 			// permet de lire le fichier
 
@@ -237,7 +170,7 @@ public class HdfsClient {
 			
 			while ((kv = readerWriter.read()) != null) {
 				//Ecrire la ligne dans Hdfs 
-				bufEcr.write(kv.v);
+				bufEcr.write(kv);
 				bufEcr.newLine();
 			}
 			

@@ -55,7 +55,7 @@ public class TxtFileReaderWriter implements FileReaderWriter {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        this.index++;       
+        this.index++;
     }
 
     @Override
