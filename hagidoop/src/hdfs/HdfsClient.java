@@ -8,6 +8,9 @@ import config.Project;
 import interfaces.FileReaderWriter;
 import interfaces.KV;
 import io.FileReaderWriterImpl;
+import io.TxtFileReaderWriter;
+import io.KVFileReaderWriter;
+import io.TxtFileReaderWriter;
 
 public class HdfsClient {
 	private static final HashMap<Integer, String> serveurAdresses = new HashMap<>(); // indice , adresse
@@ -75,18 +78,18 @@ public class HdfsClient {
 		if (fmt == 0) { // FMT_TXT	
 			for (int i= 0; i<nbServ; i++) {
 				fragName = "fragment-" + i + fname;
-				try {
+				/*try {
 				File fragment = new File( Project.PATH + "data/" + fragName);
 				} catch (IOException e) {
 					e.printStackTrace();
-				}
+				}*/
 				// indices de début et de fin des fragments
 				int debut =i*nbLigneFrag;
 				int fin =(i+1)*nbLigneFrag;
 
 				for (int j = debut; j <= fin; j++) {
-					txtFRWFrag = TxtFileReaderWriter(fragName,j);
-					txtFRW = TxtFileReaderWriter(fname,j);
+					txtFRWFrag = new TxtFileReaderWriter(fragName,j);
+					txtFRW = new TxtFileReaderWriter(fname,j);
 					KV kv = txtFRW.read(); // Lecture Fichier
 					txtFRWFrag.write(kv); // Ecriture Fragment
 
@@ -98,18 +101,18 @@ public class HdfsClient {
 			
 			for (int i= 0; i<nbServ; i++) {
 				fragName = "fragment-" + i + fname;
-				try {
+				/*try {
 				File fragment = new File( Project.PATH + "data/" + fragName);
 				} catch (IOException e) {
 					e.printStackTrace();
-				}
+				}*/
 				// indices de début et de fin des fragments
 				int debut =i*nbLigneFrag;
 				int fin =(i+1)*nbLigneFrag;
 
 				for (int j = debut; j <= fin; j++) {
-					kvFRWFrag = KVFileReaderWriter(fragName,j);
-					kvFRW = KVFileReaderWriter(fname,j);
+					kvFRWFrag = new KVFileReaderWriter(fragName,j);
+					kvFRW = new KVFileReaderWriter(fname,j);
 					KV kv = kvFRW.read(); // Lecture Fichier
 					kvFRWFrag.write(kv); // Ecriture Fragment
 
@@ -158,7 +161,7 @@ public class HdfsClient {
 		File fichier = new File(Project.PATH + "data/" + fname); // modifier le path avec celui de Hagimont
 		try {
 			// Obtention du bon FileReaderWriter au format texte
-			TxtFileReaderWriter readerWriter = TxtFileReaderWriter(fname,1);
+			TxtFileReaderWriter readerWriter = new TxtFileReaderWriter(fname,1);
 			readerWriter.open("lecture");
 			// permet de lire le fichier
 
@@ -170,7 +173,7 @@ public class HdfsClient {
 			
 			while ((kv = readerWriter.read()) != null) {
 				//Ecrire la ligne dans Hdfs 
-				bufEcr.write(kv);
+				bufEcr.write(kv.toString());
 				bufEcr.newLine();
 			}
 			
@@ -181,7 +184,7 @@ public class HdfsClient {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-}
+	}
 
 
 
