@@ -13,9 +13,22 @@ import io.KVFileReaderWriter;
 import io.TxtFileReaderWriter;
 
 public class HdfsClient {
-	private static final HashMap<Integer, String> serveurAdresses = new HashMap<>(); // indice , adresse
+	private static final HashMap<Integer, String> serveurAdresses = new HashMap<>(); // indice , adresse 
 	private static final HashMap<Integer, Integer> serveurPorts = new HashMap<>(); // indice, port
 	
+	private static void initServeurAdresses() {
+        serveurAdresses.put(0, Project.hosts[0]);
+        serveurAdresses.put(1, Project.hosts[1]);
+        serveurAdresses.put(2, Project.hosts[2]);
+    }
+
+    private static void initServeurPorts() {
+        serveurPorts.put(0, Project.ports[0]);
+        serveurPorts.put(1, Project.ports[1]);
+        serveurPorts.put(2, Project.ports[2]);
+    }
+	//public static String hosts[] = {"localhost", "localhost", "localhost"};
+	//public static int ports[] = {8081, 8082, 8083};
 	
 	private static void usage() {
 		System.out.println("Usage: java HdfsClient read <file>");
@@ -78,23 +91,28 @@ public class HdfsClient {
 		if (fmt == 0) { // FMT_TXT	
 			for (int i= 0; i<nbServ; i++) {
 				fragName = "fragment-" + i + fname;
-				/*try {
 				File fragment = new File( Project.PATH + "data/" + fragName);
-				} catch (IOException e) {
+				try {
+					FileWriter fragmentWriter = new FileWriter(fragment);
+
+					// indices de début et de fin des fragments
+					int debut =i*nbLigneFrag;
+					int fin =(i+1)*nbLigneFrag;
+
+					for (int j = debut; j <= fin; j++) {
+						txtFRWFrag = new TxtFileReaderWriter(fragName,j);
+						txtFRW = new TxtFileReaderWriter(fname,j);
+						KV kv = txtFRW.read(); // Lecture Fichier
+						txtFRWFrag.write(kv); // Ecriture Fragment
+
+					}
+
+					fragmentWriter.close();
+					
+					envoyerFragmentAuServeur(fragName, i);
+				}catch (IOException e) {
 					e.printStackTrace();
-				}*/
-				// indices de début et de fin des fragments
-				int debut =i*nbLigneFrag;
-				int fin =(i+1)*nbLigneFrag;
-
-				for (int j = debut; j <= fin; j++) {
-					txtFRWFrag = new TxtFileReaderWriter(fragName,j);
-					txtFRW = new TxtFileReaderWriter(fname,j);
-					KV kv = txtFRW.read(); // Lecture Fichier
-					txtFRWFrag.write(kv); // Ecriture Fragment
-
 				}
-				envoyerFragmentAuServeur(fragName, i);
 			}
 
 		} else if (fmt == 1) {// FMT_KV
@@ -196,6 +214,9 @@ public class HdfsClient {
 	public static void main(String[] args) {
 		// java HdfsClient <read|write> <txt|kv> <file>
 		// appel des méthodes précédentes depuis la ligne de commande
+		initServeurAdresses();
+        initServeurPorts();
+
 		if (args.length < 2) {
 			System.out.println("Nombre d'arguments incorrects. \n");
 			usage();
