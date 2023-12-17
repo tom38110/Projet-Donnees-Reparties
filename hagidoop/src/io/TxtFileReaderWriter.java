@@ -31,12 +31,16 @@ public class TxtFileReaderWriter implements FileReaderWriter {
         this.fname = fname;
     }
 
+
+
     @Override
     public KV read() {
         String ligne = null;
         KV kv = null;
         try {
-            ligne = reader.readLine();
+            if (reader != null) {
+                ligne = reader.readLine();
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -50,8 +54,10 @@ public class TxtFileReaderWriter implements FileReaderWriter {
     @Override
     public void write(KV record) {
         try {
-            writer.write(record.k + KV.SEPARATOR + record.v);
-            writer.newLine();
+            if (record != null && record.k != null) {
+                writer.write(record.k + KV.SEPARATOR + record.v);
+                writer.newLine();
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }

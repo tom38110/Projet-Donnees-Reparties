@@ -52,7 +52,7 @@ public class HdfsClient {
 		
 		ArrayList<String> lignes = new ArrayList<>(); // liste des lignes stockées 
 
-		File fichier = new File(/* Project.PATH + "data/" +  */fname); // modifier le path avec celui de Hagimont
+		File fichier = new File(Project.PATH + "data/" +  fname); // modifier le path avec celui de Hagimont
 
 		// On va recupérer les lignes dans la liste
         try  {
@@ -126,32 +126,36 @@ public class HdfsClient {
 
 
 	private static void envoyerFragmentAuServeur(String fragName, int indiceServeur) {
-		try (Socket socket = new Socket(serveurAdresses.get(indiceServeur), serveurPorts.get(indiceServeur));
-			ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream())) {
-				oos.writeObject("ecriture");
-				oos.writeObject(fragName);
+		Integer port = serveurPorts.get(indiceServeur);
+   		if (port != null) {
+			try (Socket socket = new Socket(serveurAdresses.get(indiceServeur), serveurPorts.get(indiceServeur));
+				ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream())) {
+					oos.writeObject("ecriture");
+					oos.writeObject(fragName);
 
-				try (BufferedReader bufLectFrag = new BufferedReader(new FileReader(/* Project.PATH + "data/" +  */fragName))) {
-					String ligneFrag;
-					while ((ligneFrag = bufLectFrag.readLine()) != null ){
-						oos.writeObject(ligneFrag);
+					try (BufferedReader bufLectFrag = new BufferedReader(new FileReader(/* Project.PATH + "data/" +  */fragName))) {
+						String ligneFrag;
+						while ((ligneFrag = bufLectFrag.readLine()) != null ){
+							oos.writeObject(ligneFrag);
+						}
+					} catch (IOException e) {
+						e.printStackTrace();
 					}
-				} catch (IOException e) {
+
+					oos.writeObject(null);
+					//Envoyer un message comme quoi le fragment a été correctement envoyé
+
+					ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
+					String reponse = (String) ois.readObject();
+
+					System.out.println(reponse);
+
+				} catch (IOException | ClassNotFoundException e ){
 					e.printStackTrace();
 				}
-
-				oos.writeObject(null);
-				//Envoyer un message comme quoi le fragment a été correctement envoyé
-
-				ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
-				String reponse = (String) ois.readObject();
-
-				System.out.println(reponse);
-
-			} catch (IOException | ClassNotFoundException e ){
-				e.printStackTrace();
-			}
-
+		} else {
+			System.out.println("Port non trouvé");
+		}
 	}
 
 
