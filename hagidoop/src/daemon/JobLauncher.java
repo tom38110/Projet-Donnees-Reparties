@@ -6,10 +6,13 @@ import java.util.Set;
 
 import config.Project;
 import interfaces.FileReaderWriter;
+import interfaces.KV;
 import interfaces.Map;
 import interfaces.MapReduce;
 import interfaces.NetworkReaderWriter;
 import io.FileReaderWriterImpl;
+import io.KVFileReaderWriter;
+import io.TxtFileReaderWriter;
 
 public class JobLauncher {
 
@@ -38,15 +41,24 @@ public class JobLauncher {
 
 	public static void startJob (MapReduce mr, int format, String fname) {
 		Set<Thread> threads = new HashSet<>();
+		FileReaderWriter readerMap;
 		for (int i = 0; i < Project.nbNoeud; i++) {
-			FileReaderWriter reader =  new FileReaderWriterImpl();
-			NetworkReaderWriter writer = new NetworkReaderWriterImpl();
-			Thread t = new Thread(new InnerJobLauncher(mr, reader, writer));
+			if (format == FileReaderWriter.FMT_TXT) {
+				readerMap =  new TxtFileReaderWriter(fname, 0);
+			} else {
+				readerMap = new KVFileReaderWriter(fname, 0);
+			}
+			NetworkReaderWriter writerMap = new NetworkReaderWriterImpl();
+			Thread t = new Thread(new InnerJobLauncher(mr, readerMap, writerMap));
 			threads.add(t);
 		}
 
 		for (Thread t : threads) {
 			t.join();
 		}
+
+		NetworkReaderWriter readerReduce = new NetworkReaderWriterImpl();
+		FileReaderWriter writerReduce = new TxtFileReaderWriter(fname, 0);
+		mr.reduce(readerReduce, writerReduce);
 	}
 }
