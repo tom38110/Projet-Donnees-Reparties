@@ -1,5 +1,8 @@
 package daemon;
 
+import java.net.MalformedURLException;
+import java.rmi.Naming;
+import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.util.HashSet;
 import java.util.Set;
@@ -20,20 +23,27 @@ public class JobLauncher {
 		private Map m;
 		private FileReaderWriter reader;
 		private NetworkReaderWriter writer;
+		private int numWorker;
 
-		public InnerJobLauncher(Map m, FileReaderWriter reader, NetworkReaderWriter writer) {
+		public InnerJobLauncher(Map m, FileReaderWriter reader, NetworkReaderWriter writer, int numWorker) {
 			this.m = m;
 			this.reader = reader;
 			this.writer = writer;
+			this.numWorker = numWorker;
 		}
 
 		// Lancement des runMap
 		@Override
 		public void run() {
 			try {
-				Worker worker = new WorkerImpl();
+				// Revoir port pour appli distribuée
+				Worker worker = (Worker) Naming.lookup("//localhost:4000/Carnet" + numWorker);
 				worker.runMap(m, reader, writer);
 			} catch (RemoteException e) {
+				e.printStackTrace();
+			} catch (MalformedURLException e) {
+				e.printStackTrace();
+			} catch (NotBoundException e) {
 				e.printStackTrace();
 			}
 		}
