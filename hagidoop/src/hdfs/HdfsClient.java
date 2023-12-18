@@ -39,7 +39,7 @@ public class HdfsClient {
 	
 	
 	/* Probablement fonctionnel (en attente de test ) */
-	public static void HdfsDelete(String fname) {
+	/*public static void HdfsDelete(String fname) {
 		try {
 		// File fichier = new File(~/Documents/Projet-Donnees-Reparties
 		//						+ fname); // modifier le path avec celui de Hagimont
@@ -50,7 +50,7 @@ public class HdfsClient {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-	}
+	}*/
 	
 	
 	
@@ -92,7 +92,9 @@ public class HdfsClient {
 			for (int i= 0; i<nbServ; i++) {
 				fragName = "fragment-" + i + fname;
 				File fragment = new File( Project.PATH + "data/" + fragName);
+				
 				try {
+					fragment.createNewFile();
 					FileWriter fragmentWriter = new FileWriter(fragment);
 
 					// indices de début et de fin des fragments
@@ -100,10 +102,15 @@ public class HdfsClient {
 					int fin =(i+1)*nbLigneFrag;
 
 					for (int j = debut; j <= fin; j++) {
-						txtFRWFrag = new TxtFileReaderWriter(fragName,j);
+						/*txtFRWFrag = new TxtFileReaderWriter(fragName,j);
 						txtFRW = new TxtFileReaderWriter(fname,j);
 						KV kv = txtFRW.read(); // Lecture Fichier
-						txtFRWFrag.write(kv); // Ecriture Fragment
+						txtFRWFrag.write(kv); // Ecriture Fragment*/
+
+						// ATTENTION Traiter les textes non divisible par nbNoeud et gérer les doubles noeuds
+						String ligne = lignes.get(j);
+        				fragmentWriter.write(ligne); // Ecriture Fragment
+        				fragmentWriter.write(System.lineSeparator());
 
 					}
 
@@ -119,27 +126,37 @@ public class HdfsClient {
 			
 			for (int i= 0; i<nbServ; i++) {
 				fragName = "fragment-" + i + fname;
-				/*try {
 				File fragment = new File( Project.PATH + "data/" + fragName);
-				} catch (IOException e) {
+				String fNameFin = Project.PATH + "data/" + fname;
+				try{
+					fragment.createNewFile();
+					FileWriter fragmentWriter = new FileWriter(fragment);
+					// indices de début et de fin des fragments
+					int debut =i*nbLigneFrag;
+					int fin =(i+1)*nbLigneFrag;
+
+					for (int j = debut; j <= fin; j++) {
+						
+							kvFRWFrag = new KVFileReaderWriter(fragName,j);
+							kvFRW = new KVFileReaderWriter(fNameFin,j);
+							KV kv = kvFRW.read(); // Lecture Fichier
+							kvFRWFrag.write(kv); // Ecriture Fragment
+
+							System.out.println(kv.k);
+
+							
+							
+							fragmentWriter.close();
+							envoyerFragmentAuServeur(fragName, i);
+					} 
+				} catch (IOException e){
 					e.printStackTrace();
-				}*/
-				// indices de début et de fin des fragments
-				int debut =i*nbLigneFrag;
-				int fin =(i+1)*nbLigneFrag;
-
-				for (int j = debut; j <= fin; j++) {
-					kvFRWFrag = new KVFileReaderWriter(fragName,j);
-					kvFRW = new KVFileReaderWriter(fname,j);
-					KV kv = kvFRW.read(); // Lecture Fichier
-					kvFRWFrag.write(kv); // Ecriture Fragment
-
 				}
-				envoyerFragmentAuServeur(fragName, i);
 			}
-
 		}
+		
 	}
+	
 
 
 
@@ -151,17 +168,20 @@ public class HdfsClient {
 					oos.writeObject("ecriture");
 					oos.writeObject(fragName);
 
-					try (BufferedReader bufLectFrag = new BufferedReader(new FileReader(/* Project.PATH + "data/" +  */fragName))) {
+					try (BufferedReader bufLectFrag = new BufferedReader(new FileReader(Project.PATH + "data/" +  fragName))) {
 						String ligneFrag;
 						while ((ligneFrag = bufLectFrag.readLine()) != null ){
+							System.out.println("Envoi de la ligne : " + ligneFrag);
 							oos.writeObject(ligneFrag);
 						}
 					} catch (IOException e) {
 						e.printStackTrace();
 					}
-
+					System.out.println("Fin envoie fragment");
 					oos.writeObject(null);
+					oos.close();
 					//Envoyer un message comme quoi le fragment a été correctement envoyé
+					System.out.println("le fragment a été correctement envoyé!");
 
 					ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
 					String reponse = (String) ois.readObject();
@@ -240,9 +260,11 @@ public class HdfsClient {
 					fmt =FileReaderWriter.FMT_KV;
 					HdfsWrite(fmt, fichierNom);
 				} 
-			case "delete" : // cas supprimer
+				break;
+			/*case "delete" : // cas supprimer
 				HdfsDelete(fichierNom); 
 				break;
+			*/
 			default:
 				System.out.println("Opération inconnue. \n");
 				usage();

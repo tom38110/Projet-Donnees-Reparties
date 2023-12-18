@@ -33,7 +33,9 @@ public class KVFileReaderWriter implements FileReaderWriter{
         String ligne = null;
         KV kv = null;
         try {
-            ligne = reader.readLine();
+            if (reader != null) {
+                ligne = reader.readLine();
+            }
             if (ligne != null) {
                 String[] parties = ligne.split(KV.SEPARATOR); // Récupérer la clé et la valeur
                 kv = new KV(parties[0], parties[1]);
@@ -48,8 +50,10 @@ public class KVFileReaderWriter implements FileReaderWriter{
     @Override
     public void write(KV record) {
         try {
-            writer.write(record.k + KV.SEPARATOR + record.v);
-            writer.newLine();
+            if (record != null && record.k != null) {
+                writer.write(record.k + KV.SEPARATOR + record.v);
+                writer.newLine();
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }

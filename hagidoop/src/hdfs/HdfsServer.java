@@ -24,17 +24,21 @@ public class HdfsServer {
                 String ligneFrag;
                 do {
                     ligneFrag = (String) ois.readObject();
-                    System.out.println(ligneFrag);
+                    if(ligneFrag != null) {
+                        System.out.println(ligneFrag);
+                    }
                 } while (ligneFrag != null);
                 oos.close();
                 ois.close();
                 os.close();
                 is.close();
             }
+            
         } catch (IOException e) {
             e.printStackTrace();
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
+        
     }
 }
