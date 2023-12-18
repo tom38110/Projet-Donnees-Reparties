@@ -84,10 +84,11 @@ public class HdfsClient {
 
 		int nbLigneFrag = lignes.size()/ nbServ; // Nombre de ligne par fragment.
 		String fragName;
-		FileReaderWriter txtFRW;
+		
+		/*FileReaderWriter txtFRW;
 		FileReaderWriter txtFRWFrag;
 		FileReaderWriter kvFRW;
-		FileReaderWriter kvFRWFrag;
+		FileReaderWriter kvFRWFrag;*/
 		if (fmt == 0) { // FMT_TXT	
 			for (int i= 0; i<nbServ; i++) {
 				fragName = "fragment-" + i + fname;
@@ -127,7 +128,7 @@ public class HdfsClient {
 			for (int i= 0; i<nbServ; i++) {
 				fragName = "fragment-" + i + fname;
 				File fragment = new File( Project.PATH + "data/" + fragName);
-				String fNameFin = Project.PATH + "data/" + fname;
+				//String fNameFin = Project.PATH + "data/" + fname;
 				try{
 					fragment.createNewFile();
 					FileWriter fragmentWriter = new FileWriter(fragment);
@@ -137,18 +138,19 @@ public class HdfsClient {
 
 					for (int j = debut; j <= fin; j++) {
 						
-							kvFRWFrag = new KVFileReaderWriter(fragName,j);
+							/* kvFRWFrag = new KVFileReaderWriter(fragName,j);
 							kvFRW = new KVFileReaderWriter(fNameFin,j);
+							
 							KV kv = kvFRW.read(); // Lecture Fichier
-							kvFRWFrag.write(kv); // Ecriture Fragment
-
-							System.out.println(kv.k);
-
-							
-							
-							fragmentWriter.close();
-							envoyerFragmentAuServeur(fragName, i);
+							*/
+							//fragmentWriter.write(kv.toString()); // Ecriture Fragment
+							String ligne = "null <-> " + lignes.get(j);
+							fragmentWriter.write(ligne);
+							fragmentWriter.write(System.lineSeparator());
+							//System.out.println(kv.k);		
 					} 
+					fragmentWriter.close();
+					envoyerFragmentAuServeur(fragName, i);
 				} catch (IOException e){
 					e.printStackTrace();
 				}
