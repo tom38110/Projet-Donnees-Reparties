@@ -37,7 +37,7 @@ public class JobLauncher {
 		public void run() {
 			try {
 				// Revoir port pour appli distribuée
-				Worker worker = (Worker) Naming.lookup("//localhost:4000/Carnet" + numWorker);
+				Worker worker = (Worker) Naming.lookup("//localhost:4000/Worker" + numWorker);
 				worker.runMap(m, reader, writer);
 			} catch (RemoteException e) {
 				e.printStackTrace();
@@ -59,16 +59,16 @@ public class JobLauncher {
 				readerMap = new KVFileReaderWriter(fname, 0);
 			}
 			NetworkReaderWriter writerMap = new NetworkReaderWriterImpl();
-			Thread t = new Thread(new InnerJobLauncher(mr, readerMap, writerMap));
+			Thread t = new Thread(new InnerJobLauncher(mr, readerMap, writerMap, i));
 			threads.add(t);
 		}
+
+		NetworkReaderWriter readerReduce = new NetworkReaderWriterImpl();
+		FileReaderWriter writerReduce = new KVFileReaderWriter(fname, 0);
+		mr.reduce(readerReduce, writerReduce);
 
 		for (Thread t : threads) {
 			t.join();
 		}
-
-		NetworkReaderWriter readerReduce = new NetworkReaderWriterImpl();
-		FileReaderWriter writerReduce = new TxtFileReaderWriter(fname, 0);
-		mr.reduce(readerReduce, writerReduce);
 	}
 }

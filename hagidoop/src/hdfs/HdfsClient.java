@@ -185,6 +185,7 @@ public class HdfsClient {
 					//Envoyer un message comme quoi le fragment a été correctement envoyé
 					System.out.println("le fragment a été correctement envoyé!");
 
+					
 					ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
 					String reponse = (String) ois.readObject();
 
