@@ -61,6 +61,7 @@ public class JobLauncher {
 			NetworkReaderWriter writerMap = new NetworkReaderWriterImpl();
 			Thread t = new Thread(new InnerJobLauncher(mr, readerMap, writerMap, i));
 			threads.add(t);
+			t.start();
 		}
 
 		NetworkReaderWriter readerReduce = new NetworkReaderWriterImpl();
