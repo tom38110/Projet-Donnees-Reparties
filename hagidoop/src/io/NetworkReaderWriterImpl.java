@@ -9,25 +9,23 @@ import interfaces.NetworkReaderWriter;
 
 public class NetworkReaderWriterImpl implements NetworkReaderWriter {
 
-    private BlockingQueue<KV> queue; // Utilisation d'une BlockingQueue pour gérer la communication asynchrone entre les Map et le Reducer
-    private Socket clientSocket; // Socket pour la connexion côté client (Map)
-    private ServerSocket serverSocket; // ServerSocket pour accepter les connexions côté serveur (Reducer)
-    private BufferedReader reader; // BufferedReader pour lire les données depuis la connexion
-    private BufferedWriter writer; // BufferedWriter pour écrire les données vers la connexion
+    private BlockingQueue<KV> queue; // Pour gérer la communication entre les Map et le Reducer
+    private Socket clientSocket;
+    private ServerSocket serverSocket;
+    private BufferedReader reader;
+    private BufferedWriter writer;
 
     public NetworkReaderWriterImpl() {
-        this.queue = new LinkedBlockingQueue<>(); // Initialisation de la BlockingQueue
+        this.queue = new LinkedBlockingQueue<>();
     }
 
     @Override
     public KV read() {
         try {
-            if (reader != null) {
-                String line = reader.readLine();
-                if (line != null) {
-                    String[] parts = line.split(KV.SEPARATOR);
-                    return new KV(parts[0], parts[1]);
-                }
+            String ligne = reader.readLine(); // ligne du fichier/fragment
+            if (ligne != null) {    // Tant que le fichier n'est pas vide
+                String[] parties = ligne.split(KV.SEPARATOR); // stockage des KV dans la liste des parties
+                return new KV(parties[0], parties[1]); // renvoie le couple kv 
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -38,7 +36,7 @@ public class NetworkReaderWriterImpl implements NetworkReaderWriter {
     @Override
     public void write(KV record) {
         try {
-            queue.put(record); // Ajout de l'enregistrement à la BlockingQueue
+            queue.put(record);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -47,7 +45,7 @@ public class NetworkReaderWriterImpl implements NetworkReaderWriter {
     @Override
     public void openServer() {
         try {
-            serverSocket = new ServerSocket(0); // Création d'un ServerSocket sur un port disponible (0)
+            serverSocket = new ServerSocket(); // *********** Je sais pas quel port je dois mettre
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -55,33 +53,43 @@ public class NetworkReaderWriterImpl implements NetworkReaderWriter {
 
     @Override
     public void openClient() {
-        // Pas d'implémentation nécessaire ici pour le côté client
+        try {
+            clientSocket = new Socket();// *********** Je sais pas quel port je dois mettre
+            writer = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
+            reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
+    /**
+     * Méthode pour accepter une connexion depuis un Map
+     */
     @Override
     public NetworkReaderWriter accept() {
         try {
-            clientSocket = serverSocket.accept(); // Accepter la connexion côté serveur (Reducer)
-            writer = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
-            reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+            clientSocket = serverSocket.accept(); // Le Reduce attend qu'un Map se connecte 
+            writer = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream())); // Pour écrire dans le Reduce
+            reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream())); // Pour lire les données qui viennent depuis les Maps
 
-            // Lancer un thread pour gérer l'écriture dans le Reducer depuis la queue
+            // Un thread pour gérer l'écriture dans le Reduce
             Thread reducerWriterThread = new Thread(() -> {
                 try {
                     while (true) {
-                        KV record = queue.take(); // Récupération d'un enregistrement depuis la BlockingQueue
+                        KV record = queue.take(); // Récupération les données depuis la queue
                         if (record == null) {
-                            break; // Marque la fin de l'écriture
+                            break; // Fin d'écriture
                         }
-                        writer.write(record.k + KV.SEPARATOR + record.v);
-                        writer.newLine();
-                        writer.flush();
+                        // Ecrire dans le reduce
+                        writer.write(record.k + KV.SEPARATOR + record.v); // Ecrire la donnée qui vient depuis la queue sous forme d'un KV
+                        writer.newLine(); // Retourne à la ligne
+                        writer.flush(); // Pour s'assurer que toutes les données sont écrites immédiatement dans la sortie, comme ça on n'attend pas que le tampon (le buffer) se remplit avant d'envoyé
                     }
                 } catch (InterruptedException | IOException e) {
                     e.printStackTrace();
                 } finally {
                     try {
-                        // Fermer la connexion côté serveur une fois l'écriture terminée
+                        // Fermeture de la connexion
                         writer.close();
                         reader.close();
                         clientSocket.close();
@@ -90,6 +98,7 @@ public class NetworkReaderWriterImpl implements NetworkReaderWriter {
                     }
                 }
             });
+            // Lancer le Thread
             reducerWriterThread.start();
 
         } catch (IOException e) {
@@ -101,9 +110,9 @@ public class NetworkReaderWriterImpl implements NetworkReaderWriter {
     @Override
     public void closeServer() {
         try {
-            // Marquer la fin de l'écriture en ajoutant null à la BlockingQueue
+            // Marquer la fin de l'écriture en ajoutant null à la fin de la queue
             queue.put(null);
-            serverSocket.close(); // Fermer le ServerSocket côté serveur
+            serverSocket.close();
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
@@ -111,6 +120,12 @@ public class NetworkReaderWriterImpl implements NetworkReaderWriter {
 
     @Override
     public void closeClient() {
-        // Pas d'implémentation nécessaire ici pour le côté client
+        try {
+            clientSocket.close();
+            writer.close();
+            reader.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

@@ -16,6 +16,7 @@ import interfaces.NetworkReaderWriter;
 import io.FileReaderWriterImpl;
 import io.KVFileReaderWriter;
 import io.TxtFileReaderWriter;
+import io.NetworkReaderWriterImpl;
 
 public class JobLauncher {
 
@@ -69,7 +70,12 @@ public class JobLauncher {
 		mr.reduce(readerReduce, writerReduce);
 
 		for (Thread t : threads) {
-			t.join();
+			try {
+				t.join();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 	}
 }
