@@ -27,8 +27,7 @@ public class HdfsClient {
         serveurPorts.put(1, Project.ports[1]);
         serveurPorts.put(2, Project.ports[2]);
     }
-	//public static String hosts[] = {"localhost", "localhost", "localhost"};
-	//public static int ports[] = {8081, 8082, 8083};
+
 	
 	private static void usage() {
 		System.out.println("Usage: java HdfsClient read <file>");
@@ -39,10 +38,10 @@ public class HdfsClient {
 	
 	
 	/* Probablement fonctionnel (en attente de test ) */
-	/*public static void HdfsDelete(String fname) {
+	// A refaire pour supprimer à distance...
+
+	public static void HdfsDelete(String fname) {
 		try {
-		// File fichier = new File(~/Documents/Projet-Donnees-Reparties
-		//						+ fname); // modifier le path avec celui de Hagimont
 		File fichier = new File(Project.PATH + "data/" + fname); // modifier le path avec celui de Hagimont
 		if (fichier.delete()) {
 			System.out.println("le fichier : " + fname + " a été effacé.");
@@ -50,159 +49,180 @@ public class HdfsClient {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-	}*/
+	}
 	
+
 	
-	
+	public static int nbLignes(String fname) {
+		File fichier = new File(Project.PATH + "data/" +  fname);
+		
+		int j = 0;
+		try  {
+			FileReader lectFich = new FileReader(fichier);
+			BufferedReader bufLect = new BufferedReader(lectFich);
+			String ligne;
+
+			while ((ligne = bufLect.readLine()) != null) {
+				j ++;
+			}
+
+			bufLect.close();
+		
+		} catch (IOException e) {
+			e.printStackTrace();
+		} 
+		return j;
+	}
 	// fmt format du fichier (FMT_TXT ou FMT_KV)
 	// lis chaque ligne du fichier sans le découper et stock les fragments dans les différents noeuds
 
 	//Passer par les modulo pour traiter les lignes
 	
 	public static void HdfsWrite(int fmt, String fname) {
-
 		int nbServ = Project.nbNoeud; // nombre de serveur = nombre de noeuds 
-		
-		ArrayList<String> lignes = new ArrayList<>(); // liste des lignes stockées 
-
 		File fichier = new File(Project.PATH + "data/" +  fname); // modifier le path avec celui de Hagimont
+		int nbLigneFrag = nbLignes(fname)/ nbServ; // Nombre de ligne par fragment.
+		if (fmt == 0 || fmt == 1 ) {
+			try  {
+				FileReader lectFich = new FileReader(fichier);
+				BufferedReader bufLect = new BufferedReader(lectFich);
+				String ligne;
+				int j = 0;
 
-		// On va recupérer les lignes dans la liste
-        try  {
-			FileReader lectFich = new FileReader(fichier);
-			BufferedReader bufLect = new BufferedReader(lectFich);
-
-            String ligne;
-            while ((ligne = bufLect.readLine()) != null) {
-                lignes.add(ligne);
-            }
-			bufLect.close();
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-		int nbLigneFrag = lignes.size()/ nbServ; // Nombre de ligne par fragment.
-		String fragName;
-		
-		/*FileReaderWriter txtFRW;
-		FileReaderWriter txtFRWFrag;
-		FileReaderWriter kvFRW;
-		FileReaderWriter kvFRWFrag;*/
-		if (fmt == 0) { // FMT_TXT	
-			for (int i= 0; i<nbServ; i++) {
-				fragName = "fragment-" + i + fname;
-				File fragment = new File( Project.PATH + "data/" + fragName);
-				
-				try {
-					fragment.createNewFile();
-					FileWriter fragmentWriter = new FileWriter(fragment);
-
-					// indices de début et de fin des fragments
+				for (int i= 0; i<nbServ; i++) {
 					int debut =i*nbLigneFrag;
 					int fin =(i+1)*nbLigneFrag;
-
-					for (int j = debut; j <= fin; j++) {
-						/*txtFRWFrag = new TxtFileReaderWriter(fragName,j);
-						txtFRW = new TxtFileReaderWriter(fname,j);
-						KV kv = txtFRW.read(); // Lecture Fichier
-						txtFRWFrag.write(kv); // Ecriture Fragment*/
-
-						// ATTENTION Traiter les textes non divisible par nbNoeud et gérer les doubles noeuds
-						String ligne = lignes.get(j);
-        				fragmentWriter.write(ligne); // Ecriture Fragment
-        				fragmentWriter.write(System.lineSeparator());
+					for (j = debut; j <= fin; j++) {
+						ligne = bufLect.readLine(); // Condition normalement toujours vraie qui renvoie les lignes du fragment i
+						envoyerLigneAuServeur(ligne, i);
+						System.out.println(ligne); // peut être envoyer aussi le format ?? pour créer le fragment adéquat ??
 
 					}
-
-					fragmentWriter.close();
-					
-					envoyerFragmentAuServeur(fragName, i);
-				}catch (IOException e) {
-					e.printStackTrace();
+					j++;
+					envoyerLigneAuServeur(null, i);
+					//envoyerfmtAuServeur(fmt, i);
 				}
-			}
+				bufLect.close();
 
-		} else if (fmt == 1) {// FMT_KV
-			
-			for (int i= 0; i<nbServ; i++) {
-				fragName = "fragment-" + i + fname;
-				File fragment = new File( Project.PATH + "data/" + fragName);
-				//String fNameFin = Project.PATH + "data/" + fname;
-				try{
-					fragment.createNewFile();
-					FileWriter fragmentWriter = new FileWriter(fragment);
-					// indices de début et de fin des fragments
-					int debut =i*nbLigneFrag;
-					int fin =(i+1)*nbLigneFrag;
-
-					for (int j = debut; j <= fin; j++) {
-						
-							/* kvFRWFrag = new KVFileReaderWriter(fragName,j);
-							kvFRW = new KVFileReaderWriter(fNameFin,j);
-							
-							KV kv = kvFRW.read(); // Lecture Fichier
-							*/
-							//fragmentWriter.write(kv.toString()); // Ecriture Fragment
-							String ligne = "null <-> " + lignes.get(j);
-							fragmentWriter.write(ligne);
-							fragmentWriter.write(System.lineSeparator());
-							//System.out.println(kv.k);		
-					} 
-					fragmentWriter.close();
-					envoyerFragmentAuServeur(fragName, i);
-				} catch (IOException e){
-					e.printStackTrace();
-				}
-			}
+			} catch (IOException e) {
+				e.printStackTrace();
+			} 
 		}
-		
 	}
 	
 
+	private static void envoyerLigneAuServeur(String ligne, int indiceServeur) {
+    Integer port = serveurPorts.get(indiceServeur);
 
+    if (port != null) {
+        Socket socket = null;
+        ObjectOutputStream oos = null;
 
-	private static void envoyerFragmentAuServeur(String fragName, int indiceServeur) {
-		Integer port = serveurPorts.get(indiceServeur);
-   		if (port != null) {
-			try (Socket socket = new Socket(serveurAdresses.get(indiceServeur), serveurPorts.get(indiceServeur));
-				ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream())) {
-					oos.writeObject("ecriture");
-					oos.writeObject(fragName);
+        try {
+            socket = new Socket(serveurAdresses.get(indiceServeur), serveurPorts.get(indiceServeur));
+            oos = new ObjectOutputStream(socket.getOutputStream());
 
-					try (BufferedReader bufLectFrag = new BufferedReader(new FileReader(Project.PATH + "data/" +  fragName))) {
-						String ligneFrag;
-						while ((ligneFrag = bufLectFrag.readLine()) != null ){
-							System.out.println("Envoi de la ligne : " + ligneFrag);
-							oos.writeObject(ligneFrag);
-						}
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
-					System.out.println("Fin envoie fragment");
-					oos.writeObject(null);
-					oos.close();
-					//Envoyer un message comme quoi le fragment a été correctement envoyé
-					System.out.println("le fragment a été correctement envoyé!");
+            // Envoi de la ligne au serveur
+            oos.writeObject(ligne); // envoyer sous forme de KV utiliser constructeur de KV 
 
-					
-					ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
-					String reponse = (String) ois.readObject();
+            // Fermeture du flux après l'envoi
+            oos.close();
 
-					System.out.println(reponse);
+            // Vous pouvez ajouter ici la gestion de la réponse du serveur si nécessaire
+            System.out.println("Ligne envoyée au serveur " + indiceServeur);
 
-				} catch (IOException | ClassNotFoundException e ){
-					e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } 
+
+    } else {
+        System.out.println("Port non trouvé pour le serveur " + indiceServeur);
+    }
+}
+	
+	/*
+	private static void envoyerfmtAuServeur(int fmt, int indiceServeur) {
+        Integer port = serveurPorts.get(indiceServeur);
+
+        if (port != null) {
+            try (Socket socket = new Socket(serveurAdresses.get(indiceServeur), serveurPorts.get(indiceServeur));
+                 ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream())) {
+
+                // Envoi du type d'opération (si nécessaire)
+                // oos.writeObject("operation"); 
+
+                // Envoi du format au serveur
+                oos.writeObject(fmt);
+				oos.writeObject(indiceServeur);
+				
+				System.out.println("Fin envoie fragment "+ indiceServeur);
+				oos.writeObject(null);
+                // Fermeture de la connexion
+                oos.close();
+
+                // Vous pouvez ajouter ici la gestion de la réponse du serveur si nécessaire
+
+                System.out.println("Format envoyée au serveur " + indiceServeur);
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } else {
+            System.out.println("Port non trouvé pour le serveur " + indiceServeur);
+        }
+    }	
+*/
+
+	public static void HdfsRead(String fname) {
+		// Boucle sur tous les serveurs pour lire les fragments
+		for (int i = 0; i < Project.nbNoeud; i++) { // à enlever
+			try {
+				Socket socket = new Socket(serveurAdresses.get(i), serveurPorts.get(i));
+				BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+
+				System.out.println("Fragment " + i + ":");
+				
+				String line;
+				while ((line = reader.readLine()) != null) {
+					System.out.println(line);  // Afficher la ligne du fragment
+					// Écrire la ligne dans le fichier, si nécessaire
 				}
-		} else {
-			System.out.println("Port non trouvé");
+
+				reader.close();
+				socket.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 
-
-
-
-	public static void HdfsRead(String fname) {
+	/*public static void HdfsRead(String fname, int indiceServeur) {
+		try {
+			Socket socket = new Socket(serveurAdresses.get(indiceServeur), serveurPorts.get(indiceServeur));
+			ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
+	
+			try {
+				String line;
+				while ((line = (String) ois.readObject()) != null) {
+					if (line.equals("fin_fragment")) {
+						break; // Sortir de la boucle lorsque le marqueur de fin est reçu
+					}
+					System.out.println(line);  // Afficher la ligne du fragment
+					// Écrire la ligne dans le fichier, si nécessaire
+				}
+			} catch (ClassNotFoundException e) {
+				e.printStackTrace();
+			} finally {
+				ois.close();
+				socket.close();
+				System.out.println("Fragment " + indiceServeur + ": Received all lines from server");
+			}
+			
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		*/
+		/*
 		File fichier = new File(Project.PATH + "data/" + fname); // modifier le path avec celui de Hagimont
 		try {
 			// Obtention du bon FileReaderWriter au format texte
@@ -228,12 +248,10 @@ public class HdfsClient {
 
 		} catch (IOException e) {
 			e.printStackTrace();
-		}
-	}
+		}*/
+	
 
-
-
-
+// AJOUTER UNE FONCTION QUI CHOISIT LE BON SERVEUR A PARTIR DU NOM DU FRAGMENT
 	public static void main(String[] args) {
 		// java HdfsClient <read|write> <txt|kv> <file>
 		// appel des méthodes précédentes depuis la ligne de commande
@@ -253,9 +271,11 @@ public class HdfsClient {
 
 		switch (operation) {
 			case "read" : //cas écriture
+				envoyerLigneAuServeur("lecture", 0);
 				HdfsRead(fichierNom);
 				break;
 			case "write" : // cas lecture
+				envoyerLigneAuServeur("ecriture", 0);
 				if (formatFichier.equals("txt")) { // on donne le format txt
 					fmt = FileReaderWriter.FMT_TXT;
 					HdfsWrite(fmt, fichierNom);
@@ -264,10 +284,11 @@ public class HdfsClient {
 					HdfsWrite(fmt, fichierNom);
 				} 
 				break;
-			/*case "delete" : // cas supprimer
+			case "delete" : // cas supprimer
+				envoyerLigneAuServeur("supprimer", 0);
 				HdfsDelete(fichierNom); 
 				break;
-			*/
+			
 			default:
 				System.out.println("Opération inconnue. \n");
 				usage();
