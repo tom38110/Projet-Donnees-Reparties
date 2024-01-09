@@ -57,7 +57,7 @@ public class HdfsServer {
         }
     }*/
 
-         
+        
         if (args.length < 1) {
             System.out.println("Usage: java HdfsServer <NumeroPort>");
             return;
@@ -67,34 +67,49 @@ public class HdfsServer {
             ServerSocket serverSocket = new ServerSocket(Project.ports[fragmentIndex]);
             String fragName = "fragment-" + fragmentIndex;
             File fragmentFile = new File(Project.PATH + "data/" + fragName);
-            fragmentFile.createNewFile();
-            FileWriter fragmentWriter = new FileWriter(fragmentFile);
-            boolean cond = true;
+            
             while (true) {
-                while (cond) {
-                    Socket clientSocket = serverSocket.accept();
-                    ObjectInputStream ois = new ObjectInputStream(clientSocket.getInputStream());
-                    ObjectOutputStream oos = new ObjectOutputStream(clientSocket.getOutputStream());
-                    
-                    try {
-                        String ligne = (String) ois.readObject();
-                        if (ligne != null) {
-                            fragmentWriter.write(ligne);
-                            fragmentWriter.write(System.lineSeparator());
-                            System.out.println(ligne);
-                        } else {
-                            cond = false;
+                Socket clientSocket = serverSocket.accept();
+                ObjectInputStream ois = new ObjectInputStream(clientSocket.getInputStream());
+                ObjectOutputStream oos = new ObjectOutputStream(clientSocket.getOutputStream());
+                
+                try {
+                    // On lit le mode demandé
+                    String ligne = (String) ois.readObject();
+                    if (ligne.equals("ecriture")) {
+                        fragmentFile.createNewFile();
+                        FileWriter fragmentWriter = new FileWriter(fragmentFile);
+                        while (ligne != null) {
+                            ligne = (String) ois.readObject();
+                            if (ligne != null) {
+                                fragmentWriter.write(ligne);
+                                fragmentWriter.write(System.lineSeparator());
+                                System.out.println(ligne);
+                            }
                         }
-                    } catch (ClassNotFoundException e) {
-                        e.printStackTrace();
-                    } finally {
-                        ois.close();
-                        oos.close();
-                        clientSocket.close();
+                        fragmentWriter.close();
+                    } else if (ligne.equals("lecture")) {
+                        System.out.println("On lit");
+                         try (BufferedReader fragmentReader = new BufferedReader(new FileReader(fragmentFile));) {
+                            while ((ligne = fragmentReader.readLine()) != null) {
+                                oos.writeObject(ligne);
+                            }
+                        } catch (FileNotFoundException e) {
+                            // Gérer le cas où le fragment n'existe pas encore
+                            System.out.println("Le fragment n'existe pas encore.");
+                        }
+
+                        // Signal de fin du fragment
+                        oos.writeObject(null);
                     }
+                    
+                } catch (ClassNotFoundException e) {
+                    e.printStackTrace();
+                } finally {
+                    //ois.close();
+                    //oos.close();
+                    //clientSocket.close();
                 }
-                fragmentWriter.close();
-                cond = true;
             }
         } catch (IOException e) {
             e.printStackTrace();

@@ -86,20 +86,11 @@ public class HdfsClient {
 			try  {
 				FileReader lectFich = new FileReader(fichier);
 				BufferedReader bufLect = new BufferedReader(lectFich);
-				String ligne;
-				int j = 0;
 
 				for (int i= 0; i<nbServ; i++) {
 					int debut =i*nbLigneFrag;
 					int fin =(i+1)*nbLigneFrag;
-					for (j = debut; j <= fin; j++) {
-						ligne = bufLect.readLine(); // Condition normalement toujours vraie qui renvoie les lignes du fragment i
-						envoyerLigneAuServeur(ligne, i);
-						System.out.println(ligne); // peut être envoyer aussi le format ?? pour créer le fragment adéquat ??
-
-					}
-					j++;
-					envoyerLigneAuServeur(null, i);
+					envoyerLigneAuServeur(bufLect, debut, fin, i); 
 					//envoyerfmtAuServeur(fmt, i);
 				}
 				bufLect.close();
@@ -111,9 +102,9 @@ public class HdfsClient {
 	}
 	
 
-	private static void envoyerLigneAuServeur(String ligne, int indiceServeur) {
+	private static void envoyerLigneAuServeur(BufferedReader bufLect, int debut, int fin, int indiceServeur) {
     Integer port = serveurPorts.get(indiceServeur);
-
+	String ligne;
     if (port != null) {
         Socket socket = null;
         ObjectOutputStream oos = null;
@@ -123,8 +114,15 @@ public class HdfsClient {
             oos = new ObjectOutputStream(socket.getOutputStream());
 
             // Envoi de la ligne au serveur
-            oos.writeObject(ligne); // envoyer sous forme de KV utiliser constructeur de KV 
+			oos.writeObject("ecriture");
+			for (int j = debut; j <= fin; j++) {
+				ligne = bufLect.readLine(); // Condition normalement toujours vraie qui renvoie les lignes du fragment i
+            	oos.writeObject(ligne); // envoyer sous forme de KV utiliser constructeur de KV 
+				System.out.println(ligne); // peut être envoyer aussi le format ?? pour créer le fragment adéquat ??
 
+			}
+			ligne = null;
+			oos.writeObject(ligne);
             // Fermeture du flux après l'envoi
             oos.close();
 
@@ -178,17 +176,27 @@ public class HdfsClient {
 		for (int i = 0; i < Project.nbNoeud; i++) { // à enlever
 			try {
 				Socket socket = new Socket(serveurAdresses.get(i), serveurPorts.get(i));
-				BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+				ObjectOutputStream oos;
+				oos = new ObjectOutputStream(socket.getOutputStream());
+
+            	// Envoi de la ligne au serveur
+				oos.writeObject("lecture");
+				
+				ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
 
 				System.out.println("Fragment " + i + ":");
 				
-				String line;
-				while ((line = reader.readLine()) != null) {
-					System.out.println(line);  // Afficher la ligne du fragment
-					// Écrire la ligne dans le fichier, si nécessaire
+				String ligne;
+				try {
+					while ((ligne = (String) ois.readObject()) != null) {
+						System.out.println(ligne);  // Afficher la ligne du fragment
+						// Écrire la ligne dans le fichier, si nécessaire
+					}
+				} catch (ClassNotFoundException e) {
+					e.printStackTrace();
 				}
-
-				reader.close();
+				oos.close();
+				ois.close();
 				socket.close();
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -271,11 +279,9 @@ public class HdfsClient {
 
 		switch (operation) {
 			case "read" : //cas écriture
-				envoyerLigneAuServeur("lecture", 0);
 				HdfsRead(fichierNom);
 				break;
 			case "write" : // cas lecture
-				envoyerLigneAuServeur("ecriture", 0);
 				if (formatFichier.equals("txt")) { // on donne le format txt
 					fmt = FileReaderWriter.FMT_TXT;
 					HdfsWrite(fmt, fichierNom);
@@ -285,7 +291,6 @@ public class HdfsClient {
 				} 
 				break;
 			case "delete" : // cas supprimer
-				envoyerLigneAuServeur("supprimer", 0);
 				HdfsDelete(fichierNom); 
 				break;
 			
