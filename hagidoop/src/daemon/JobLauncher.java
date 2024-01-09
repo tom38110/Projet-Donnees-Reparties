@@ -64,7 +64,7 @@ public class JobLauncher {
 			t.start();
 		}
 
-		NetworkReaderWriter readerReduce = new NetworkReaderWriterImpl();
+		NetworkReaderWriter readerReduc;
 		FileReaderWriter writerReduce = new KVFileReaderWriter(fname, 0);
 		mr.reduce(readerReduce, writerReduce);
 

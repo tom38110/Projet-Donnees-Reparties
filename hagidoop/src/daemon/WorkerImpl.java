@@ -25,7 +25,9 @@ public class WorkerImpl extends UnicastRemoteObject implements Worker {
 
     @Override
     public void runMap(Map m, FileReaderWriter reader, NetworkReaderWriter writer) throws RemoteException {
+        writer.openServer();
         m.map(reader, writer);
+        writer.closeServer();
     }
 
     public static void main(String[] args) {
