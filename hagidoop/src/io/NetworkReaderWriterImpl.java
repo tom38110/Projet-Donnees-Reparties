@@ -23,7 +23,7 @@ public class NetworkReaderWriterImpl implements NetworkReaderWriter {
      * @param host
      */
     public NetworkReaderWriterImpl(String host, int port) {
-        this.host =host;
+        this.host = host;
         this.port = port;
     }
 
@@ -55,8 +55,9 @@ public class NetworkReaderWriterImpl implements NetworkReaderWriter {
     @Override
     public void write(KV record) {
         try {
-            //queue.put(record);
-        } catch (InterruptedException e) {
+            writer.write(record.k + KV.SEPARATOR + record.v); //ecris k<->v
+            writer.newLine(); // on saute une ligne
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
