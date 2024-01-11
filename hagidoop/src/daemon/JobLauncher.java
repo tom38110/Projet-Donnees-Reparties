@@ -9,11 +9,9 @@ import java.util.Set;
 
 import config.Project;
 import interfaces.FileReaderWriter;
-import interfaces.KV;
 import interfaces.Map;
 import interfaces.MapReduce;
 import interfaces.NetworkReaderWriter;
-import io.FileReaderWriterImpl;
 import io.KVFileReaderWriter;
 import io.TxtFileReaderWriter;
 import io.NetworkReaderWriterImpl;
@@ -84,7 +82,6 @@ public class JobLauncher {
 			try {
 				t.join();
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
