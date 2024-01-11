@@ -20,16 +20,19 @@ public class NetworkReaderWriterImpl implements NetworkReaderWriter {
     private OutputStream os;
     private String host;
     private int port;
+    private BlockingQueue<KV> queue;
 
 
     /**
      * Constructeur pour le NetworkReaderWriterImpl
      * @param port
      * @param host
+     * @param queue
      */
-    public NetworkReaderWriterImpl(String host, int port) {
+    public NetworkReaderWriterImpl(String host, int port, BlockingQueue<KV> queue) {
         this.host = host;
         this.port = port;
+        this.queue = queue;
     }
 
     /**
@@ -43,7 +46,7 @@ public class NetworkReaderWriterImpl implements NetworkReaderWriter {
     }
 
     /**
-     * Méthode pour envoyer un fragment au Reduce
+     * Méthode pour lire un KV
      * @return 
      */
     @Override
@@ -57,7 +60,11 @@ public class NetworkReaderWriterImpl implements NetworkReaderWriter {
      */
     @Override
     public void write(KV record) {
-        this.oos.writeObject(record);
+        try {
+            queue.put(record);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
