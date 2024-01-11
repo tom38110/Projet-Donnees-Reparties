@@ -9,10 +9,15 @@ import interfaces.NetworkReaderWriter;
 
 public class NetworkReaderWriterImpl implements NetworkReaderWriter {
 
-    private Socket clientSocket;
+    /**
+     * Attributs de la classe NetworkReaderWriterImpl
+     */
+    private Socket socket;
     private ServerSocket serverSocket;
-    private BufferedReader reader;
-    private BufferedWriter writer;
+    private ObjectInputStream ois;
+    private ObjectOutputStream oos;
+    private InputStream is;
+    private OutputStream os;
     private String host;
     private int port;
 
@@ -28,38 +33,31 @@ public class NetworkReaderWriterImpl implements NetworkReaderWriter {
     }
 
     /**
+     * Constructeur pour le NetworkReaderWriterImpl
+     * @param socket
+     */
+    public NetworkReaderWriterImpl(Socket socket) {
+        this.socket = socket;
+        is = socket.getInputStream();
+        ois = new ObjectInputStream(is);
+    }
+
+    /**
      * Méthode pour envoyer un fragment au Reduce
-     * @param clientSocket
-     * @param fragmentFile
-     * @throws IOException
+     * @return 
      */
     @Override
     public KV read() {
-        try {
-            String ligne = reader.readLine(); // ligne du fichier/fragment
-            if (ligne != null) {    // Tant que le fichier n'est pas vide
-                String[] parties = ligne.split(KV.SEPARATOR); // stockage des KV dans la liste des parties
-                return new KV(parties[0], parties[1]); // renvoie le couple kv 
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return null;
+        return (KV) this.ois.readObject();
     }
 
     /**
      * Méthode pour écrire KV record
      * @param record
-     * @throws IOException
      */
     @Override
     public void write(KV record) {
-        try {
-            writer.write(record.k + KV.SEPARATOR + record.v); //ecris k<->v
-            writer.newLine(); // on saute une ligne
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        this.oos.writeObject(record);
     }
 
     /**
@@ -80,24 +78,26 @@ public class NetworkReaderWriterImpl implements NetworkReaderWriter {
     @Override
     public void openClient() {
         try {
-            clientSocket = new Socket(host, port);
-        } catch (IOException e) {
+            socket = new Socket(host, port);
+            os = socket.getOutputStream();
+            oos = new ObjectOutputStream(os);
+        } catch (IOException e) {    
             e.printStackTrace();
         }
     }
 
     /**
      * Méthode pour accepter la connexion
-     * @return
+     * @return nouveau NetworkReaderWriterImpl
      */
     @Override
     public NetworkReaderWriter accept() {
         try {
-            clientSocket = serverSocket.accept(); // Le Reduce attend qu'un Map se connecte 
+            socket = serverSocket.accept(); // Le Reduce attend qu'un Map se connecte 
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return this;
+        return new NetworkReaderWriterImpl(socket);
     }
 
     /**
@@ -106,7 +106,9 @@ public class NetworkReaderWriterImpl implements NetworkReaderWriter {
     @Override
     public void closeServer() {
         try {
-            //queue.put(null);
+            ois.close();
+            is.close();
+            socket.close();
             serverSocket.close();
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
@@ -119,7 +121,9 @@ public class NetworkReaderWriterImpl implements NetworkReaderWriter {
     @Override
     public void closeClient() {
         try {
-            clientSocket.close();
+            oos.close();
+            os.close();
+            socket.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
