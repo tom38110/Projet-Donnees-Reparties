@@ -52,21 +52,32 @@ public class JobLauncher {
 
 	public static void startJob (MapReduce mr, int format, String fname) {
 		Set<Thread> threads = new HashSet<>();
-		FileReaderWriter readerMap;
+		NetworkReaderWriter readerReduce = new NetworkReaderWriterImpl(Project.hostInit, Project.portInit);
+		// Ouverture du serveur (Reduce)
+		readerReduce.openServer();
+		FileReaderWriter writerReduce = new KVFileReaderWriter("res.txt", 0);
+		// Lancement des clients (Map)
 		for (int i = 0; i < Project.nbNoeud; i++) {
+			FileReaderWriter readerMap;
+			NetworkReaderWriter writerMap;
 			if (format == FileReaderWriter.FMT_TXT) {
 				readerMap =  new TxtFileReaderWriter(fname, 0);
 			} else {
 				readerMap = new KVFileReaderWriter(fname, 0);
 			}
-			NetworkReaderWriter writerMap = new NetworkReaderWriterImpl();
+			writerMap = new NetworkReaderWriterImpl(Project.hosts[i], Project.ports[i]);
 			Thread t = new Thread(new InnerJobLauncher(mr, readerMap, writerMap, i));
 			threads.add(t);
 			t.start();
 		}
 
-		NetworkReaderWriter readerReduc;
-		FileReaderWriter writerReduce = new KVFileReaderWriter(fname, 0);
+		// Acceptation des connections demandées par les clients
+		Set<NetworkReaderWriter> readersServer = new HashSet<>();
+		for (int i = 0; i < Project.nbNoeud; i++) {
+			NetworkReaderWriter readerServer = readerReduce.accept();
+			readersServer.add(readerServer);
+		}
+
 		mr.reduce(readerReduce, writerReduce);
 
 		for (Thread t : threads) {
