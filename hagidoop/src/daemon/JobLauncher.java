@@ -6,9 +6,12 @@ import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import config.Project;
 import interfaces.FileReaderWriter;
+import interfaces.KV;
 import interfaces.Map;
 import interfaces.MapReduce;
 import interfaces.NetworkReaderWriter;
@@ -50,10 +53,11 @@ public class JobLauncher {
 
 	public static void startJob (MapReduce mr, int format, String fname) {
 		Set<Thread> threads = new HashSet<>();
-		NetworkReaderWriter readerReduce = new NetworkReaderWriterImpl(Project.hostInit, Project.portInit);
+		NetworkReaderWriter readerReduce = new NetworkReaderWriterImpl(Project.hostInit, Project.portInit, queue);
 		// Ouverture du serveur (Reduce)
 		readerReduce.openServer();
 		FileReaderWriter writerReduce = new KVFileReaderWriter("res.txt", 0);
+		BlockingQueue<KV> queue = new LinkedBlockingQueue<>();
 		// Lancement des clients (Map)
 		for (int i = 0; i < Project.nbNoeud; i++) {
 			FileReaderWriter readerMap;

@@ -18,8 +18,10 @@ public class LinkerImpl implements Linker {
         this.bq = new LinkedBlockingQueue<>();
     }
 
-    public NetworkReaderWriter fusion() {
-
+    public NetworkReaderWriter creerThre], queuead() {
+        for (NetworkReaderWriter reader : this.readers) {
+            Thread t = new Thread()
+        }
     }
 
     @Override
