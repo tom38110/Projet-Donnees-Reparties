@@ -5,11 +5,16 @@ import java.io.*;
 
 public class FileReaderWriterImpl implements FileReaderWriter {
     
+    // Attributs
     private String fname;
     private BufferedReader reader; // modification avec ReaderImpl surement nécessaire
     private BufferedWriter writer; // modfication avec WriterImpl surement nécessaire
     private long indiceCourant;
 
+    /**
+     * Méthode pour écrire un KV record
+     * @param record
+     */
     @Override
     public void write(KV record) {
         try {
@@ -20,6 +25,10 @@ public class FileReaderWriterImpl implements FileReaderWriter {
         }
     }
 
+    /**
+     * Méthode pour lire un KV
+     * @return un KV
+     */
     @Override
     public KV read() {
         try {
@@ -34,6 +43,10 @@ public class FileReaderWriterImpl implements FileReaderWriter {
         return null;
     }
 
+    /**
+     * Méthode pour ouvrir un fichier
+     * @param mode mode d'ouverture du fichier (lecture ou écriture)
+     */
     @Override
     public void open(String mode) {
         try {
@@ -48,6 +61,9 @@ public class FileReaderWriterImpl implements FileReaderWriter {
         }
     }
 
+    /**
+     * Méthode pour fermer un fichier
+     */
     @Override
     public void close() {
         try {
@@ -62,16 +78,27 @@ public class FileReaderWriterImpl implements FileReaderWriter {
         }
     }
 
+    /**
+     * Méthode pour obtenir l'index courant
+     * @return l'index courant
+     */
     @Override
     public long getIndex() {
         return indiceCourant;
     }
 
+    /**
+     * Méthode pour obtenir le nom du fichier
+     */
     @Override
     public String getFname() {
         return fname;
     }
 
+    /**
+     * Méthode pour définir le nom du fichier
+     * @param fname
+     */
     @Override
     public void setFname(String fname) {
         this.fname = fname;

@@ -60,11 +60,7 @@ public class NetworkReaderWriterImpl implements NetworkReaderWriter {
      */
     @Override
     public void write(KV record) {
-        try {
-            queue.put(record);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        this.oos.writeObject(record);
     }
 
     /**
