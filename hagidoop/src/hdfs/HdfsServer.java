@@ -65,7 +65,7 @@ public class HdfsServer {
         int fragmentIndex = Integer.parseInt(args[0]);
         try {
             ServerSocket serverSocket = new ServerSocket(Project.ports[fragmentIndex]);
-            String fragName = "fragment-" + fragmentIndex;
+            String fragName = "fragment_" + fragmentIndex + ".txt";
             File fragmentFile = new File(Project.PATH + "data/" + fragName);
             
             while (true) {

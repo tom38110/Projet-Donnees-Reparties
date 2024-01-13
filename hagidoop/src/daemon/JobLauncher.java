@@ -1,5 +1,7 @@
 package daemon;
 
+import java.io.File;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.rmi.Naming;
 import java.rmi.NotBoundException;
@@ -41,7 +43,7 @@ public class JobLauncher {
 		public void run() {
 			try {
 				// Revoir port pour appli distribuée
-				Worker worker = (Worker) Naming.lookup("//localhost:4000/Worker" + numWorker);
+				Worker worker = (Worker) Naming.lookup("//" + Project.hosts[numWorker] + ":" + Project.portsWorker[numWorker] + "/Worker" + numWorker);
 				worker.runMap(m, reader, writer);
 			} catch (RemoteException e) {
 				e.printStackTrace();
@@ -55,18 +57,19 @@ public class JobLauncher {
 
 	public static void startJob (MapReduce mr, int format, String fname) {
 		Set<Thread> threads = new HashSet<>();
-		NetworkReaderWriter readerServeur = new NetworkReaderWriterImpl(Project.hostInit, Project.portInit);
 		// Ouverture du serveur (Reduce)
+		NetworkReaderWriter readerServeur = new NetworkReaderWriterImpl(Project.hostInit, Project.portInit);
 		readerServeur.openServer();
 		// Lancement des clients (Map)
 		for (int i = 0; i < Project.nbNoeud; i++) {
 			FileReaderWriter readerMap;
 			NetworkReaderWriter writerMap;
 			if (format == FileReaderWriter.FMT_TXT) {
-				readerMap =  new TxtFileReaderWriter("fragment_" + i + "_" + fname, 0);
+				readerMap =  new TxtFileReaderWriter(fname + "_" + i + ".txt", 0);
 			} else {
-				readerMap = new KVFileReaderWriter("fragment_" + i + "_" + fname, 0);
+				readerMap = new KVFileReaderWriter(fname + "_" + i + ".txt", 0);
 			}
+			readerMap.open("lecture");
 			writerMap = new NetworkReaderWriterImpl(Project.hosts[i], Project.ports[i]);
 			Thread t = new Thread(new InnerJobLauncher(mr, readerMap, writerMap, i));
 			threads.add(t);
@@ -76,13 +79,25 @@ public class JobLauncher {
 		// Acceptation des connections demandées par les clients
 		BlockingQueue<KV> queue = new LinkedBlockingQueue<>();
 		BlockingQueueReader readerReduce = new BlockingQueueReader(queue);
+		File fres = new File(Project.PATH + "data/res.txt");
+		if (!fres.exists()) {
+			try {
+				fres.createNewFile();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
 		FileReaderWriter writerReduce = new KVFileReaderWriter("res.txt", 0);
+		writerReduce.open("ecriture");
 		for (int i = 0; i < Project.nbNoeud; i++) {
 			Thread t = new Thread(new Linker(readerServeur, queue));
 			threads.add(t);
 			t.start();
 		}
+
+		// Lancement du serveur (Reduce)
 		mr.reduce(readerReduce, writerReduce);
+		writerReduce.close();
 
 		for (Thread t : threads) {
 			try {

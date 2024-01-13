@@ -6,6 +6,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 
+import config.Project;
 import interfaces.FileReaderWriter;
 import interfaces.KV;
 
@@ -23,7 +24,7 @@ public class KVFileReaderWriter implements FileReaderWriter{
      * @param index l'indice de départ
     */
     public KVFileReaderWriter(String fileName, long index){
-        this.fname = fileName;
+        this.fname = Project.PATH + "data/" + fname;
         this.index = index;
     }
 

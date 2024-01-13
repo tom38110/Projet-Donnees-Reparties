@@ -1,8 +1,12 @@
-import java.io.*;
+package io;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
 
 import interfaces.KV;
 import interfaces.NetworkReaderWriter;
@@ -20,7 +24,6 @@ public class NetworkReaderWriterImpl implements NetworkReaderWriter {
     private OutputStream os;
     private String host;
     private int port;
-    private BlockingQueue<KV> queue;
 
 
     /**
@@ -29,10 +32,9 @@ public class NetworkReaderWriterImpl implements NetworkReaderWriter {
      * @param host
      * @param queue
      */
-    public NetworkReaderWriterImpl(String host, int port, BlockingQueue<KV> queue) {
+    public NetworkReaderWriterImpl(String host, int port) {
         this.host = host;
         this.port = port;
-        this.queue = queue;
     }
 
     /**
@@ -41,8 +43,12 @@ public class NetworkReaderWriterImpl implements NetworkReaderWriter {
      */
     public NetworkReaderWriterImpl(Socket socket) {
         this.socket = socket;
-        is = socket.getInputStream();
-        ois = new ObjectInputStream(is);
+        try {
+            is = socket.getInputStream();
+            ois = new ObjectInputStream(is);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -51,7 +57,15 @@ public class NetworkReaderWriterImpl implements NetworkReaderWriter {
      */
     @Override
     public KV read() {
-        return (KV) this.ois.readObject();
+        KV kv = null;
+        try {
+            kv = (KV) this.ois.readObject();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return kv;
     }
 
     /**
@@ -60,7 +74,11 @@ public class NetworkReaderWriterImpl implements NetworkReaderWriter {
      */
     @Override
     public void write(KV record) {
-        this.oos.writeObject(record);
+        try {
+            this.oos.writeObject(record);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -113,7 +131,7 @@ public class NetworkReaderWriterImpl implements NetworkReaderWriter {
             is.close();
             socket.close();
             serverSocket.close();
-        } catch (IOException | InterruptedException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }

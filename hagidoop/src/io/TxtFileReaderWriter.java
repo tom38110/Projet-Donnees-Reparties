@@ -6,6 +6,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 
+import config.Project;
 import interfaces.FileReaderWriter;
 import interfaces.KV;
 
@@ -28,7 +29,7 @@ public class TxtFileReaderWriter implements FileReaderWriter {
      */
     public TxtFileReaderWriter(String fname, long index) {
         this.index = index;
-        this.fname = fname;
+        this.fname = Project.PATH + "data/" + fname;
     }
 
 
