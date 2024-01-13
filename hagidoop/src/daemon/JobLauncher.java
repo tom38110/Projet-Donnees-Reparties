@@ -15,7 +15,9 @@ import interfaces.KV;
 import interfaces.Map;
 import interfaces.MapReduce;
 import interfaces.NetworkReaderWriter;
+import io.BlockingQueueReader;
 import io.KVFileReaderWriter;
+import io.Linker;
 import io.TxtFileReaderWriter;
 import io.NetworkReaderWriterImpl;
 
@@ -53,19 +55,17 @@ public class JobLauncher {
 
 	public static void startJob (MapReduce mr, int format, String fname) {
 		Set<Thread> threads = new HashSet<>();
-		NetworkReaderWriter readerReduce = new NetworkReaderWriterImpl(Project.hostInit, Project.portInit, queue);
+		NetworkReaderWriter readerServeur = new NetworkReaderWriterImpl(Project.hostInit, Project.portInit);
 		// Ouverture du serveur (Reduce)
-		readerReduce.openServer();
-		FileReaderWriter writerReduce = new KVFileReaderWriter("res.txt", 0);
-		BlockingQueue<KV> queue = new LinkedBlockingQueue<>();
+		readerServeur.openServer();
 		// Lancement des clients (Map)
 		for (int i = 0; i < Project.nbNoeud; i++) {
 			FileReaderWriter readerMap;
 			NetworkReaderWriter writerMap;
 			if (format == FileReaderWriter.FMT_TXT) {
-				readerMap =  new TxtFileReaderWriter(fname, 0);
+				readerMap =  new TxtFileReaderWriter("fragment_" + i + "_" + fname, 0);
 			} else {
-				readerMap = new KVFileReaderWriter(fname, 0);
+				readerMap = new KVFileReaderWriter("fragment_" + i + "_" + fname, 0);
 			}
 			writerMap = new NetworkReaderWriterImpl(Project.hosts[i], Project.ports[i]);
 			Thread t = new Thread(new InnerJobLauncher(mr, readerMap, writerMap, i));
@@ -74,12 +74,14 @@ public class JobLauncher {
 		}
 
 		// Acceptation des connections demandées par les clients
-		Set<NetworkReaderWriter> readersServer = new HashSet<>();
+		BlockingQueue<KV> queue = new LinkedBlockingQueue<>();
+		BlockingQueueReader readerReduce = new BlockingQueueReader(queue);
+		FileReaderWriter writerReduce = new KVFileReaderWriter("res.txt", 0);
 		for (int i = 0; i < Project.nbNoeud; i++) {
-			NetworkReaderWriter readerServer = readerReduce.accept();
-			readersServer.add(readerServer);
+			Thread t = new Thread(new Linker(readerServeur, queue));
+			threads.add(t);
+			t.start();
 		}
-
 		mr.reduce(readerReduce, writerReduce);
 
 		for (Thread t : threads) {
