@@ -43,13 +43,16 @@ public class JobLauncher {
 		public void run() {
 			try {
 				// Revoir port pour appli distribuée
-				Worker worker = (Worker) Naming.lookup("//" + Project.hosts[numWorker] + ":" + Project.portsWorker[numWorker] + "/Worker" + numWorker);
+				Worker worker = (Worker) Naming.lookup("//" + Project.hosts[numWorker] + ":8084/Worker" + numWorker);
 				worker.runMap(m, reader, writer);
 			} catch (RemoteException e) {
+				System.out.println("nique t 1");
 				e.printStackTrace();
 			} catch (MalformedURLException e) {
+				System.out.println("nique t 2");
 				e.printStackTrace();
 			} catch (NotBoundException e) {
+				System.out.println("nique t 3");
 				e.printStackTrace();
 			}
 		}
@@ -69,7 +72,6 @@ public class JobLauncher {
 			} else {
 				readerMap = new KVFileReaderWriter(fname + "_" + i + ".txt", 0);
 			}
-			readerMap.open("lecture");
 			writerMap = new NetworkReaderWriterImpl(Project.hosts[i], Project.ports[i]);
 			Thread t = new Thread(new InnerJobLauncher(mr, readerMap, writerMap, i));
 			threads.add(t);
@@ -80,12 +82,10 @@ public class JobLauncher {
 		BlockingQueue<KV> queue = new LinkedBlockingQueue<>();
 		BlockingQueueReader readerReduce = new BlockingQueueReader(queue);
 		File fres = new File(Project.PATH + "data/res.txt");
-		if (!fres.exists()) {
-			try {
-				fres.createNewFile();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
+		try {
+			fres.createNewFile();
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 		FileReaderWriter writerReduce = new KVFileReaderWriter("res.txt", 0);
 		writerReduce.open("ecriture");

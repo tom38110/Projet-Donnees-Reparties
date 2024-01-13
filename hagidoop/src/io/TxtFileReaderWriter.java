@@ -69,7 +69,9 @@ public class TxtFileReaderWriter implements FileReaderWriter {
     public void open(String mode) {
         try {
             if (mode.equals("lecture")) {
+                System.out.println("Ouverture en lecture de " + this.fname);
                 reader = new BufferedReader(new FileReader(this.fname));
+                System.out.println("ok");
             } else if (mode.equals("ecriture")) {
                 writer = new BufferedWriter(new FileWriter(this.fname));
             }

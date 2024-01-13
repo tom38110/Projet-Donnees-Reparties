@@ -21,6 +21,7 @@ public class WorkerImpl extends UnicastRemoteObject implements Worker {
     @Override
     public void runMap(Map m, FileReaderWriter reader, NetworkReaderWriter writer) throws RemoteException {
         writer.openClient();
+        reader.open("lecture");
         m.map(reader, writer);
         reader.close();
         writer.closeClient();
@@ -30,7 +31,11 @@ public class WorkerImpl extends UnicastRemoteObject implements Worker {
         try {
             int numWorker = Integer.parseInt(args[0]);
             Worker w = new WorkerImpl();
-            Registry registry = LocateRegistry.createRegistry(8084);
+            try {
+                Registry registry = LocateRegistry.createRegistry(8084);
+            } catch (RemoteException e) {
+                System.out.println("registry déjà créé");
+            }
             Naming.rebind("//" + Project.hosts[numWorker] + ":8084/Worker" + numWorker, w);
             System.out.println("Worker " + numWorker + " bound in registry");
         } catch (RemoteException e) {
