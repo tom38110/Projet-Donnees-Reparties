@@ -41,15 +41,38 @@ public class HdfsClient {
 	// A refaire pour supprimer à distance...
 
 	public static void HdfsDelete(String fname) {
+		int ind = 0;
+		for (int i = 0; i < Project.nbNoeud; i++) { 
+			if (fname == "fragment_" + i + ".txt") {
+				ind = i;
+				break;
+			}
+		}
+		
 		try {
+			Socket socket = new Socket(serveurAdresses.get(ind), serveurPorts.get(ind));
+			ObjectOutputStream oos;
+			oos = new ObjectOutputStream(socket.getOutputStream());
+
+			// Envoi de la ligne au serveur
+			oos.writeObject("supprimer");
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+	}
+
+		
+		
+		/*try {
 		File fichier = new File(Project.PATH + "data/" + fname); // modifier le path avec celui de Hagimont
 		if (fichier.delete()) {
 			System.out.println("le fichier : " + fname + " a été effacé.");
 		}
 		} catch (Exception e) {
 			e.printStackTrace();
-		}
-	}
+		}*/
+	
 	
 
 	
@@ -173,9 +196,15 @@ public class HdfsClient {
 
 	public static void HdfsRead(String fname) {
 		// Boucle sur tous les serveurs pour lire les fragments
-		for (int i = 0; i < Project.nbNoeud; i++) { // à enlever
+		int ind = 0;
+		for (int i = 0; i < Project.nbNoeud; i++) { 
+			if (fname == "fragment_" + i + ".txt") {
+				ind = i;
+				break;
+			}
+		}
 			try {
-				Socket socket = new Socket(serveurAdresses.get(i), serveurPorts.get(i));
+				Socket socket = new Socket(serveurAdresses.get(ind) , serveurPorts.get(ind));
 				ObjectOutputStream oos;
 				oos = new ObjectOutputStream(socket.getOutputStream());
 
@@ -184,7 +213,7 @@ public class HdfsClient {
 				
 				ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
 
-				System.out.println("Fragment " + i + ":");
+				System.out.println("Fragment " + ind + ":");
 				
 				String ligne;
 				try {
@@ -201,62 +230,7 @@ public class HdfsClient {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-		}
 	}
-
-	/*public static void HdfsRead(String fname, int indiceServeur) {
-		try {
-			Socket socket = new Socket(serveurAdresses.get(indiceServeur), serveurPorts.get(indiceServeur));
-			ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
-	
-			try {
-				String line;
-				while ((line = (String) ois.readObject()) != null) {
-					if (line.equals("fin_fragment")) {
-						break; // Sortir de la boucle lorsque le marqueur de fin est reçu
-					}
-					System.out.println(line);  // Afficher la ligne du fragment
-					// Écrire la ligne dans le fichier, si nécessaire
-				}
-			} catch (ClassNotFoundException e) {
-				e.printStackTrace();
-			} finally {
-				ois.close();
-				socket.close();
-				System.out.println("Fragment " + indiceServeur + ": Received all lines from server");
-			}
-			
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		*/
-		/*
-		File fichier = new File(Project.PATH + "data/" + fname); // modifier le path avec celui de Hagimont
-		try {
-			// Obtention du bon FileReaderWriter au format texte
-			TxtFileReaderWriter readerWriter = new TxtFileReaderWriter(fname,1);
-			readerWriter.open("lecture");
-			// permet de lire le fichier
-
-			FileWriter lectFich = new FileWriter(fichier);
-			
-			// On va ouvrir un Buffered Writer pour stocker les fragments lus
-			BufferedWriter bufEcr = new BufferedWriter(lectFich);
-			KV kv;
-			
-			while ((kv = readerWriter.read()) != null) {
-				//Ecrire la ligne dans Hdfs 
-				bufEcr.write(kv.toString());
-				bufEcr.newLine();
-			}
-			
-			// Fermeture des ressources
-			readerWriter.close();
-			bufEcr.close();
-
-		} catch (IOException e) {
-			e.printStackTrace();
-		}*/
 	
 
 // AJOUTER UNE FONCTION QUI CHOISIT LE BON SERVEUR A PARTIR DU NOM DU FRAGMENT

@@ -101,8 +101,17 @@ public class HdfsServer {
 
                         // Signal de fin du fragment
                         oos.writeObject(null);
+
+                    }  else if (ligne.equals("supprimer")) {
+                        try{
+                            File fichier = new File(Project.PATH + "data/" + fragName); 
+                            if (fichier.delete()) {
+                                System.out.println("le fichier : " + fragName + " a été effacé.");
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
                     }
-                    
                 } catch (ClassNotFoundException e) {
                     e.printStackTrace();
                 } finally {
