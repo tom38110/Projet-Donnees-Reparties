@@ -128,6 +128,7 @@ public class HdfsClient {
 	private static void envoyerLigneAuServeur(BufferedReader bufLect, int debut, int fin, int indiceServeur) {
     Integer port = serveurPorts.get(indiceServeur);
 	String ligne;
+	KV kv;
     if (port != null) {
         Socket socket = null;
         ObjectOutputStream oos = null;
@@ -140,12 +141,14 @@ public class HdfsClient {
 			oos.writeObject("ecriture");
 			for (int j = debut; j <= fin; j++) {
 				ligne = bufLect.readLine(); // Condition normalement toujours vraie qui renvoie les lignes du fragment i
-            	oos.writeObject(ligne); // envoyer sous forme de KV utiliser constructeur de KV 
+				kv = new KV(null, ligne);
+            	oos.writeObject(kv); // envoyer sous forme de KV utiliser constructeur de KV 
 				System.out.println(ligne); // peut être envoyer aussi le format ?? pour créer le fragment adéquat ??
 
 			}
 			ligne = null;
-			oos.writeObject(ligne);
+			kv = new KV(null, ligne);
+			oos.writeObject(kv);
             // Fermeture du flux après l'envoi
             oos.close();
 
@@ -215,10 +218,10 @@ public class HdfsClient {
 
 				System.out.println("Fragment " + ind + ":");
 				
-				String ligne;
+				KV kv;
 				try {
-					while ((ligne = (String) ois.readObject()) != null) {
-						System.out.println(ligne);  // Afficher la ligne du fragment
+					while ((kv = (KV) ois.readObject()) != null) {
+						System.out.println(kv.v);  // Afficher la ligne du fragment
 						// Écrire la ligne dans le fichier, si nécessaire
 					}
 				} catch (ClassNotFoundException e) {

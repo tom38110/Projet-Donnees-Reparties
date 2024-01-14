@@ -1,6 +1,7 @@
 package hdfs;
 
 import config.Project;
+import interfaces.KV;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -76,29 +77,29 @@ public class HdfsServer {
                 try {
                     // On lit le mode demandé
                     String ligne = (String) ois.readObject();
+                    KV kv;
                     if (ligne.equals("ecriture")) {
                         fragmentFile.createNewFile();
                         FileWriter fragmentWriter = new FileWriter(fragmentFile);
-                        while (ligne != null) {
-                            ligne = (String) ois.readObject();
-                            if (ligne != null) {
-                                fragmentWriter.write(ligne);
+                        do {
+                            kv = (KV) ois.readObject();
+                            if (kv.v != null) {
+                                fragmentWriter.write(kv.v);
                                 fragmentWriter.write(System.lineSeparator());
-                                System.out.println(ligne);
+                                System.out.println(kv.v);
                             }
-                        }
+                        } while(kv.v != null);
                         fragmentWriter.close();
                     } else if (ligne.equals("lecture")) {
-                        System.out.println("On lit");
                          try (BufferedReader fragmentReader = new BufferedReader(new FileReader(fragmentFile));) {
                             while ((ligne = fragmentReader.readLine()) != null) {
-                                oos.writeObject(ligne);
+                                kv = new KV(null, ligne);
+                                oos.writeObject(kv);
                             }
                         } catch (FileNotFoundException e) {
                             // Gérer le cas où le fragment n'existe pas encore
                             System.out.println("Le fragment n'existe pas encore.");
                         }
-
                         // Signal de fin du fragment
                         oos.writeObject(null);
 
