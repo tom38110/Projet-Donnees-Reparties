@@ -43,7 +43,7 @@ public class HdfsClient {
 	public static void HdfsDelete(String fname) {
 		int ind = 0;
 		for (int i = 0; i < Project.nbNoeud; i++) { 
-			if (fname == "fragment_" + i + ".txt") {
+			if (fname.equals("fragment_" + i + ".txt")) {
 				ind = i;
 				break;
 			}
@@ -198,7 +198,7 @@ public class HdfsClient {
 		// Boucle sur tous les serveurs pour lire les fragments
 		int ind = 0;
 		for (int i = 0; i < Project.nbNoeud; i++) { 
-			if (fname == "fragment_" + i + ".txt") {
+			if (fname.equals("fragment_" + i + ".txt")) {
 				ind = i;
 				break;
 			}
@@ -240,16 +240,23 @@ public class HdfsClient {
 		initServeurAdresses();
         initServeurPorts();
 
-		if (args.length < 2) {
+		String operation;
+		String formatFichier = "txt";
+		String fichierNom;
+		if (args.length == 3 && args[0].equals("write")) {
+			operation = args[0];
+			formatFichier = args[1];
+			fichierNom = args[2];
+		} else if (args.length == 2 && (args[0].equals("read") || args[0].equals("delete"))) {
+			operation = args[0];
+			fichierNom = args[1];
+		} else {
 			System.out.println("Nombre d'arguments incorrects. \n");
 			usage();
 			return;
 		}
 		// Initialisation des variables nécessaires
 		int fmt;
-		String operation = args[0];
-		String formatFichier = args[1];
-		String fichierNom = args [2];
 
 		switch (operation) {
 			case "read" : //cas écriture
