@@ -8,6 +8,7 @@ import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 
+import config.Project;
 import interfaces.KV;
 import interfaces.NetworkReaderWriter;
 
@@ -99,7 +100,8 @@ public class NetworkReaderWriterImpl implements NetworkReaderWriter {
     @Override
     public void openClient() {
         try {
-            socket = new Socket(host, port);
+            // Demande de connexion au serveur
+            socket = new Socket(Project.hostInit, Project.portInit);
             os = socket.getOutputStream();
             oos = new ObjectOutputStream(os);
         } catch (IOException e) {    

@@ -46,13 +46,10 @@ public class JobLauncher {
 				Worker worker = (Worker) Naming.lookup("//" + Project.hosts[numWorker] + ":8084/Worker" + numWorker);
 				worker.runMap(m, reader, writer);
 			} catch (RemoteException e) {
-				System.out.println("nique t 1");
 				e.printStackTrace();
 			} catch (MalformedURLException e) {
-				System.out.println("nique t 2");
 				e.printStackTrace();
 			} catch (NotBoundException e) {
-				System.out.println("nique t 3");
 				e.printStackTrace();
 			}
 		}
@@ -81,12 +78,6 @@ public class JobLauncher {
 		// Acceptation des connections demandées par les clients
 		BlockingQueue<KV> queue = new LinkedBlockingQueue<>();
 		BlockingQueueReader readerReduce = new BlockingQueueReader(queue);
-		File fres = new File(Project.PATH + "data/res.txt");
-		try {
-			fres.createNewFile();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
 		FileReaderWriter writerReduce = new KVFileReaderWriter("res.txt", 0);
 		writerReduce.open("ecriture");
 		for (int i = 0; i < Project.nbNoeud; i++) {

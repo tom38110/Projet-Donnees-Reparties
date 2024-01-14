@@ -24,7 +24,7 @@ public class KVFileReaderWriter implements FileReaderWriter{
      * @param index l'indice de départ
     */
     public KVFileReaderWriter(String fileName, long index){
-        this.fname = Project.PATH + "data/" + fname;
+        this.fname = Project.PATH + "data/" + fileName;
         this.index = index;
     }
 
@@ -51,7 +51,7 @@ public class KVFileReaderWriter implements FileReaderWriter{
     @Override
     public void write(KV record) {
         try {
-            if (record != null && record.k != null) {
+            if (record != null) {
                 writer.write(record.k + KV.SEPARATOR + record.v);
                 writer.newLine();
             }

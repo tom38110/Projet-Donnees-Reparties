@@ -18,6 +18,9 @@ public class BlockingQueueReader implements Reader {
         KV kv = null;
         try {
             kv = this.queue.take();
+            if (kv.k == null && kv.v == null) {
+                return null;
+            }
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

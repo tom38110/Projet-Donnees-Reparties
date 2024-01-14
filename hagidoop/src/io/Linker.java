@@ -1,8 +1,6 @@
 package io;
 
-import java.util.Set;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
 
 import interfaces.KV;
 import interfaces.NetworkReaderWriter;
@@ -14,7 +12,7 @@ public class Linker implements Runnable {
 
     public Linker(NetworkReaderWriter readerServeur, BlockingQueue<KV> bq) {
         this.readerServeur = readerServeur;
-        this.bq = new LinkedBlockingQueue<>();
+        this.bq = bq;
     }
 
     @Override
@@ -24,10 +22,17 @@ public class Linker implements Runnable {
         do {
             kv = reader.read();
             try {
-                bq.put(kv);
+                if (kv != null) {
+                    bq.put(kv);
+                }
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         } while(kv != null);
+        try {
+            bq.put(new KV(null, null));
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 }
