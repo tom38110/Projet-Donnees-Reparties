@@ -43,7 +43,7 @@ public class JobLauncher {
 		public void run() {
 			try {
 				// Revoir port pour appli distribuée
-				Worker worker = (Worker) Naming.lookup("//" + Project.hosts[numWorker] + ":8084/Worker" + numWorker);
+				Worker worker = (Worker) Naming.lookup("//" + Project.hosts[numWorker] + ":" + Project.portWorker + "/Worker" + numWorker);
 				worker.runMap(m, reader, writer);
 			} catch (RemoteException e) {
 				e.printStackTrace();
@@ -65,9 +65,9 @@ public class JobLauncher {
 			FileReaderWriter readerMap;
 			NetworkReaderWriter writerMap;
 			if (format == FileReaderWriter.FMT_TXT) {
-				readerMap =  new TxtFileReaderWriter(fname + "_" + i + ".txt", 0);
+				readerMap =  new TxtFileReaderWriter("fragment_" + i + ".txt", 0);
 			} else {
-				readerMap = new KVFileReaderWriter(fname + "_" + i + ".txt", 0);
+				readerMap = new KVFileReaderWriter("fragment_" + i + ".txt", 0);
 			}
 			writerMap = new NetworkReaderWriterImpl(Project.hosts[i], Project.ports[i]);
 			Thread t = new Thread(new InnerJobLauncher(mr, readerMap, writerMap, i));
@@ -78,7 +78,7 @@ public class JobLauncher {
 		// Acceptation des connections demandées par les clients
 		BlockingQueue<KV> queue = new LinkedBlockingQueue<>();
 		BlockingQueueReader readerReduce = new BlockingQueueReader(queue);
-		FileReaderWriter writerReduce = new KVFileReaderWriter("res.txt", 0);
+		FileReaderWriter writerReduce = new KVFileReaderWriter("res_" + fname, 0);
 		writerReduce.open("ecriture");
 		for (int i = 0; i < Project.nbNoeud; i++) {
 			Thread t = new Thread(new Linker(readerServeur, queue));

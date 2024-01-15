@@ -8,7 +8,7 @@ public class Project {
 	public static int nbNoeud = 3;
 	public static String hosts[] = {"localhost", "localhost", "localhost"};
 	public static int ports[] = {8081, 8082, 8083};
-	//public static int portsWorker[] = {8084, 8085, 8086};
+	public static int portWorker = 8084;
 	public static String hostInit = "localhost";
 	public static int portInit = 8080;
 }

@@ -7,10 +7,6 @@ import java.util.HashMap;
 import config.Project;
 import interfaces.FileReaderWriter;
 import interfaces.KV;
-import io.FileReaderWriterImpl;
-import io.TxtFileReaderWriter;
-import io.KVFileReaderWriter;
-import io.TxtFileReaderWriter;
 
 public class HdfsClient {
 	private static final HashMap<Integer, String> serveurAdresses = new HashMap<>(); // indice , adresse 

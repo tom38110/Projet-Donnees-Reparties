@@ -33,11 +33,11 @@ public class WorkerImpl extends UnicastRemoteObject implements Worker {
             int numWorker = Integer.parseInt(args[0]);
             Worker w = new WorkerImpl();
             try {
-                Registry registry = LocateRegistry.createRegistry(8084);
+                Registry registry = LocateRegistry.createRegistry(Project.portWorker);
             } catch (RemoteException e) {
                 System.out.println("registry déjà créé");
             }
-            Naming.rebind("//" + Project.hosts[numWorker] + ":8084/Worker" + numWorker, w);
+            Naming.rebind("//" + Project.hosts[numWorker] + ":" + Project.portWorker + "/Worker" + numWorker, w);
             System.out.println("Worker " + numWorker + " bound in registry");
         } catch (RemoteException e) {
             e.printStackTrace();
