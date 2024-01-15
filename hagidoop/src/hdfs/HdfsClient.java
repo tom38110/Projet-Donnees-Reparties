@@ -87,7 +87,7 @@ public class HdfsClient {
 		int nbServ = Project.nbNoeud; // nombre de serveur = nombre de noeuds 
 		File fichier = new File(Project.PATH + "data/" +  fname); // modifier le path avec celui de Hagimont
 		long nbLigneFrag = nbLignes(fname)/ nbServ; // Nombre de ligne par fragment.
-		System.out.println(nbLigneFrag);
+		// System.out.println(nbLigneFrag);
 		if (fmt == 0 || fmt == 1 ) {
 			try  {
 				FileReader lectFich = new FileReader(fichier);
