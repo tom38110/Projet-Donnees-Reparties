@@ -1,15 +1,4 @@
 #!/bin/bash
-# Compilation
-echo "On compile"
-javac application/*.java
-javac config/*.java
-javac daemon/*.java
-javac hdfs/*.java
-javac interfaces/*.java
-javac io/*.java
-echo "On a compilé"
-
-sleep 2
 
 # Fragmentation du fichier donné en argument
 # Lancement des HdfsServer
@@ -19,12 +8,13 @@ do
     echo "On a lancé le serveur $i"
     sleep 2
 done
+sleep 5
 
 # Lancement du write par HdfsClient
 java hdfs.HdfsClient write txt "$2"
 echo "On a écrit les fragments"
 
-sleep 2
+sleep 10
 
 # Lancement des Worker
 for ((i=0; i<$1; i++))

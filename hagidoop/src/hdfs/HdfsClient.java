@@ -13,15 +13,15 @@ public class HdfsClient {
 	private static final HashMap<Integer, Integer> serveurPorts = new HashMap<>(); // indice, port
 	
 	private static void initServeurAdresses() {
-        serveurAdresses.put(0, Project.hosts[0]);
-        serveurAdresses.put(1, Project.hosts[1]);
-        serveurAdresses.put(2, Project.hosts[2]);
+		for (int i = 0; i < Project.nbNoeud; i++) {
+			serveurAdresses.put(i, Project.hosts[i]);
+		}
     }
 
     private static void initServeurPorts() {
-        serveurPorts.put(0, Project.ports[0]);
-        serveurPorts.put(1, Project.ports[1]);
-        serveurPorts.put(2, Project.ports[2]);
+        for (int i = 0; i < Project.nbNoeud; i++) {
+			serveurPorts.put(i, Project.ports[i]);
+		}
     }
 
 	
@@ -58,10 +58,10 @@ public class HdfsClient {
 		
 	}
 	
-	public static int nbLignes(String fname) {
+	public static long nbLignes(String fname) {
 		File fichier = new File(Project.PATH + "data/" +  fname);
 		
-		int j = 0;
+		long j = 0;
 		try  {
 			FileReader lectFich = new FileReader(fichier);
 			BufferedReader bufLect = new BufferedReader(lectFich);
@@ -86,15 +86,16 @@ public class HdfsClient {
 	public static void HdfsWrite(int fmt, String fname) {
 		int nbServ = Project.nbNoeud; // nombre de serveur = nombre de noeuds 
 		File fichier = new File(Project.PATH + "data/" +  fname); // modifier le path avec celui de Hagimont
-		int nbLigneFrag = nbLignes(fname)/ nbServ; // Nombre de ligne par fragment.
+		long nbLigneFrag = nbLignes(fname)/ nbServ; // Nombre de ligne par fragment.
+		System.out.println(nbLigneFrag);
 		if (fmt == 0 || fmt == 1 ) {
 			try  {
 				FileReader lectFich = new FileReader(fichier);
 				BufferedReader bufLect = new BufferedReader(lectFich);
 
 				for (int i= 0; i<nbServ; i++) {
-					int debut =i*nbLigneFrag;
-					int fin =(i+1)*nbLigneFrag;
+					long debut =i*nbLigneFrag;
+					long fin =(i+1)*nbLigneFrag;
 					envoyerLigneAuServeur(bufLect, debut, fin, i); 
 					//envoyerfmtAuServeur(fmt, i);
 				}
@@ -107,7 +108,7 @@ public class HdfsClient {
 	}
 	
 
-	private static void envoyerLigneAuServeur(BufferedReader bufLect, int debut, int fin, int indiceServeur) {
+	private static void envoyerLigneAuServeur(BufferedReader bufLect, long debut, long fin, int indiceServeur) {
 		Integer port = serveurPorts.get(indiceServeur);
 		String ligne;
 		KV kv;
@@ -121,7 +122,7 @@ public class HdfsClient {
 
 				// Envoi de la ligne au serveur
 				oos.writeObject("ecriture");
-				for (int j = debut; j <= fin; j++) {
+				for (long j = debut; j <= fin; j++) {
 					ligne = bufLect.readLine(); // Condition normalement toujours vraie qui renvoie les lignes du fragment i
 					kv = new KV(null, ligne);
 					oos.writeObject(kv); // envoyer sous forme de KV utiliser constructeur de KV 
