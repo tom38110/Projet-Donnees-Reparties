@@ -1,3 +1,4 @@
+#!/bin/bash
 cp $1 /tmp/data.txt
 
 # generate 2^$2 times file $1

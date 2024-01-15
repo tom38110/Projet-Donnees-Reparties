@@ -57,20 +57,6 @@ public class HdfsClient {
 		}
 		
 	}
-
-		
-		
-		/*try {
-		File fichier = new File(Project.PATH + "data/" + fname); // modifier le path avec celui de Hagimont
-		if (fichier.delete()) {
-			System.out.println("le fichier : " + fname + " a été effacé.");
-		}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}*/
-	
-	
-
 	
 	public static int nbLignes(String fname) {
 		File fichier = new File(Project.PATH + "data/" +  fname);
@@ -122,76 +108,43 @@ public class HdfsClient {
 	
 
 	private static void envoyerLigneAuServeur(BufferedReader bufLect, int debut, int fin, int indiceServeur) {
-    Integer port = serveurPorts.get(indiceServeur);
-	String ligne;
-	KV kv;
-    if (port != null) {
-        Socket socket = null;
-        ObjectOutputStream oos = null;
+		Integer port = serveurPorts.get(indiceServeur);
+		String ligne;
+		KV kv;
+		if (port != null) {
+			Socket socket = null;
+			ObjectOutputStream oos = null;
 
-        try {
-            socket = new Socket(serveurAdresses.get(indiceServeur), serveurPorts.get(indiceServeur));
-            oos = new ObjectOutputStream(socket.getOutputStream());
+			try {
+				socket = new Socket(serveurAdresses.get(indiceServeur), serveurPorts.get(indiceServeur));
+				oos = new ObjectOutputStream(socket.getOutputStream());
 
-            // Envoi de la ligne au serveur
-			oos.writeObject("ecriture");
-			for (int j = debut; j <= fin; j++) {
-				ligne = bufLect.readLine(); // Condition normalement toujours vraie qui renvoie les lignes du fragment i
+				// Envoi de la ligne au serveur
+				oos.writeObject("ecriture");
+				for (int j = debut; j <= fin; j++) {
+					ligne = bufLect.readLine(); // Condition normalement toujours vraie qui renvoie les lignes du fragment i
+					kv = new KV(null, ligne);
+					oos.writeObject(kv); // envoyer sous forme de KV utiliser constructeur de KV 
+					//System.out.println(ligne); // peut être envoyer aussi le format ?? pour créer le fragment adéquat ??
+
+				}
+				ligne = null;
 				kv = new KV(null, ligne);
-            	oos.writeObject(kv); // envoyer sous forme de KV utiliser constructeur de KV 
-				System.out.println(ligne); // peut être envoyer aussi le format ?? pour créer le fragment adéquat ??
+				oos.writeObject(kv);
+				// Fermeture du flux après l'envoi
+				oos.close();
 
-			}
-			ligne = null;
-			kv = new KV(null, ligne);
-			oos.writeObject(kv);
-            // Fermeture du flux après l'envoi
-            oos.close();
+				// Vous pouvez ajouter ici la gestion de la réponse du serveur si nécessaire
+				System.out.println("Ligne envoyée au serveur " + indiceServeur);
 
-            // Vous pouvez ajouter ici la gestion de la réponse du serveur si nécessaire
-            System.out.println("Ligne envoyée au serveur " + indiceServeur);
+			} catch (IOException e) {
+				e.printStackTrace();
+			} 
 
-        } catch (IOException e) {
-            e.printStackTrace();
-        } 
-
-    } else {
-        System.out.println("Port non trouvé pour le serveur " + indiceServeur);
-    }
-}
-	
-	/*
-	private static void envoyerfmtAuServeur(int fmt, int indiceServeur) {
-        Integer port = serveurPorts.get(indiceServeur);
-
-        if (port != null) {
-            try (Socket socket = new Socket(serveurAdresses.get(indiceServeur), serveurPorts.get(indiceServeur));
-                 ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream())) {
-
-                // Envoi du type d'opération (si nécessaire)
-                // oos.writeObject("operation"); 
-
-                // Envoi du format au serveur
-                oos.writeObject(fmt);
-				oos.writeObject(indiceServeur);
-				
-				System.out.println("Fin envoie fragment "+ indiceServeur);
-				oos.writeObject(null);
-                // Fermeture de la connexion
-                oos.close();
-
-                // Vous pouvez ajouter ici la gestion de la réponse du serveur si nécessaire
-
-                System.out.println("Format envoyée au serveur " + indiceServeur);
-
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        } else {
-            System.out.println("Port non trouvé pour le serveur " + indiceServeur);
-        }
-    }	
-*/
+		} else {
+			System.out.println("Port non trouvé pour le serveur " + indiceServeur);
+		}
+	}
 
 	public static void HdfsRead(String fname) {
 		// Boucle sur tous les serveurs pour lire les fragments
