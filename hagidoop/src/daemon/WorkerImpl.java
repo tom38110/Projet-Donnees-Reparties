@@ -25,7 +25,7 @@ public class WorkerImpl extends UnicastRemoteObject implements Worker {
         m.map(reader, writer);
         writer.write(null);
         reader.close();
-        writer.closeClient();
+        //writer.closeClient();
     }
 
     public static void main(String[] args) {

@@ -115,10 +115,12 @@ public class HdfsClient {
 		if (port != null) {
 			Socket socket = null;
 			ObjectOutputStream oos = null;
+			ObjectInputStream ois = null;
 
 			try {
 				socket = new Socket(serveurAdresses.get(indiceServeur), serveurPorts.get(indiceServeur));
 				oos = new ObjectOutputStream(socket.getOutputStream());
+				ois = new ObjectInputStream(socket.getInputStream());
 
 				// Envoi de la ligne au serveur
 				oos.writeObject("ecriture");
@@ -132,13 +134,18 @@ public class HdfsClient {
 				ligne = null;
 				kv = new KV(null, ligne);
 				oos.writeObject(kv);
+				// Attente que les serveurs aient tout lu
+				kv = (KV) ois.readObject();
 				// Fermeture du flux après l'envoi
+				ois.close();
 				oos.close();
 				socket.close();
 				// Vous pouvez ajouter ici la gestion de la réponse du serveur si nécessaire
 				System.out.println("Ligne envoyée au serveur " + indiceServeur);
 
 			} catch (IOException e) {
+				e.printStackTrace();
+			} catch (ClassNotFoundException e) {
 				e.printStackTrace();
 			} 
 

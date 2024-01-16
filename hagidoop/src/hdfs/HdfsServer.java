@@ -48,6 +48,8 @@ public class HdfsServer {
                             }
                         } while(kv.v != null);
                         fragmentWriter.close();
+                        kv = new KV(null, "ok");
+                        oos.writeObject(kv);
                     } else if (ligne.equals("lecture")) {
                          try (BufferedReader fragmentReader = new BufferedReader(new FileReader(fragmentFile));) {
                             while ((ligne = fragmentReader.readLine()) != null) {
