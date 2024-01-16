@@ -134,7 +134,7 @@ public class HdfsClient {
 				oos.writeObject(kv);
 				// Fermeture du flux après l'envoi
 				oos.close();
-
+				socket.close();
 				// Vous pouvez ajouter ici la gestion de la réponse du serveur si nécessaire
 				System.out.println("Ligne envoyée au serveur " + indiceServeur);
 
